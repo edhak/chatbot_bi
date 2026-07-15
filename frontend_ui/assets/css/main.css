@@ -1,0 +1,163 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-dark: #3c3c3b;
+  --brand-blue: #0496cd;
+  --brand-yellow: #f5c418;
+  --brand-red: #d12928;
+  --brand-light: #dde1e5;
+}
+
+html,
+body,
+#__nuxt {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  color: var(--brand-dark);
+  background-color: #f4f6f8;
+}
+
+@layer components {
+  .chat-markdown {
+    @apply text-sm leading-relaxed;
+  }
+
+  .chat-markdown > :first-child {
+    margin-top: 0;
+  }
+
+  .chat-markdown > :last-child {
+    margin-bottom: 0;
+  }
+
+  .chat-markdown p {
+    @apply my-2;
+  }
+
+  .chat-markdown strong,
+  .chat-markdown b {
+    @apply font-semibold;
+  }
+
+  .chat-markdown em,
+  .chat-markdown i {
+    @apply italic;
+  }
+
+  .chat-markdown ul,
+  .chat-markdown ol {
+    @apply my-2 pl-5;
+  }
+
+  .chat-markdown ul {
+    @apply list-disc;
+  }
+
+  .chat-markdown ol {
+    @apply list-decimal;
+  }
+
+  .chat-markdown li {
+    @apply my-0.5;
+  }
+
+  .chat-markdown code {
+    @apply rounded px-1 py-0.5 text-[0.85em] font-mono;
+  }
+
+  .chat-markdown pre {
+    @apply my-2 overflow-x-auto rounded-lg p-3 text-xs;
+  }
+
+  .chat-markdown pre code {
+    @apply bg-transparent p-0;
+  }
+
+  .chat-markdown blockquote {
+    @apply my-2 border-l-4 pl-3 italic;
+  }
+
+  .chat-markdown h1,
+  .chat-markdown h2,
+  .chat-markdown h3 {
+    @apply mb-2 mt-3 font-semibold;
+  }
+
+  .chat-markdown h1 { @apply text-base; }
+  .chat-markdown h2 { @apply text-sm; }
+  .chat-markdown h3 { @apply text-sm; }
+
+  .chat-markdown a {
+    @apply underline underline-offset-2;
+  }
+
+  /* Respuesta del agente (fondo claro) */
+  .chat-markdown--default strong,
+  .chat-markdown--default b {
+    @apply text-brand-dark;
+  }
+
+  .chat-markdown--default code {
+    @apply bg-brand-light/60 text-brand-dark;
+  }
+
+  .chat-markdown--default pre {
+    @apply bg-brand-light/40 text-brand-dark;
+  }
+
+  .chat-markdown--default blockquote {
+    @apply border-brand-blue text-[#6B6B6A];
+  }
+
+  .chat-markdown--default a {
+    @apply text-brand-blue;
+  }
+
+  /* Mensaje del usuario (fondo azul) */
+  .chat-markdown--inverse strong,
+  .chat-markdown--inverse b {
+    @apply text-white;
+  }
+
+  .chat-markdown--inverse code {
+    @apply bg-white/20 text-white;
+  }
+
+  .chat-markdown--inverse pre {
+    @apply bg-white/15 text-white;
+  }
+
+  .chat-markdown--inverse blockquote {
+    @apply border-brand-yellow text-white/90;
+  }
+
+  .chat-markdown--inverse a {
+    @apply text-brand-yellow;
+  }
+}
+
+@layer utilities {
+  .scrollbar-executive::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .scrollbar-executive::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-executive::-webkit-scrollbar-thumb {
+    background-color: var(--brand-light);
+    border-radius: 3px;
+  }
+
+  .scrollbar-executive::-webkit-scrollbar-thumb:hover {
+    background-color: #c5cad0;
+  }
+}

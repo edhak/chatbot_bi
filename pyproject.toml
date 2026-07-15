@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agent-api"
+version = "1.0.0"
+description = "Agente BI analítico con LangGraph, DeepSeek y consultas DAX"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+    "langchain>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "langchain-core>=0.3.0",
+    "langgraph>=0.2.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "pandas>=2.0.0
+
+[project.optional-dependencies]
+ssas = ["pyadomd>=0.1.1"]",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["agent_api*"]

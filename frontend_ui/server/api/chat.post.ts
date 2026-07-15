@@ -1,0 +1,103 @@
+import type { EChartsOption } from 'echarts'
+import { fetchAgentQuery, type DebugLogEntry } from '../utils/fetchAgent'
+
+const CHAT_TIMEOUT_MS = 90_000
+const MAX_MESSAGE_LENGTH = 500
+
+function pushLog(logs: DebugLogEntry[], step: string, message: string, level = 'info', elapsed_ms = 0) {
+  logs.push({ step, message, level, elapsed_ms })
+}
+
+export default defineEventHandler(async (event) => {
+  const bffLogs: DebugLogEntry[] = []
+  const t0 = Date.now()
+  pushLog(bffLogs, 'bff', 'Recibida petición del navegador')
+
+  const body = await readBody<{ message?: string; cube_address?: string }>(event)
+
+  if (!body?.message?.trim()) {
+    throw createError({ statusCode: 400, statusMessage: 'El campo "message" es obligatorio.' })
+  }
+
+  const message = body.message.trim()
+  if (message.length > MAX_MESSAGE_LENGTH) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: `La pregunta no puede superar ${MAX_MESSAGE_LENGTH} caracteres.`,
+    })
+  }
+
+  const config = useRuntimeConfig()
+  const agentApiUrl = config.agentApiUrl as string
+  const allowClientCube = config.allowClientCubeAddress === 'true' || config.allowClientCubeAddress === true
+  const cubeAddress = allowClientCube && body.cube_address?.trim()
+    ? body.cube_address.trim()
+    : (config.defaultCubeAddress as string)
+
+  pushLog(bffLogs, 'bff', `URL primaria: ${agentApiUrl}`, 'info', Date.now() - t0)
+  if (process.env.DOCKER_GATEWAY) {
+    pushLog(bffLogs, 'bff', `Gateway Docker: ${process.env.DOCKER_GATEWAY}`, 'info', Date.now() - t0)
+  }
+  if (process.env.HOST_IP) {
+    pushLog(bffLogs, 'bff', `HOST_IP: ${process.env.HOST_IP}`, 'info', Date.now() - t0)
+  }
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), CHAT_TIMEOUT_MS)
+
+  try {
+    const { data: response, usedUrl } = await fetchAgentQuery(
+      agentApiUrl,
+      { question: message, cube_address: cubeAddress },
+      controller.signal,
+      (message, level = 'info') => pushLog(bffLogs, 'bff', message, level, Date.now() - t0),
+    )
+
+    pushLog(bffLogs, 'bff', `Conectado vía ${usedUrl}`, 'info', Date.now() - t0)
+    pushLog(
+      bffLogs,
+      'bff',
+      `Backend respondió en ${response.elapsed_ms ?? '?'}ms`,
+      'info',
+      Date.now() - t0,
+    )
+
+    const mergedLogs = [...bffLogs, ...(response.debug_log ?? [])]
+    const payload = {
+      text: response.text_response || '(Respuesta vacía del backend)',
+      dax: response.dax_query,
+      chartConfig: response.echarts_config,
+      debugLog: mergedLogs,
+      elapsedMs: Date.now() - t0,
+      hasChart: Boolean(response.echarts_config?.series),
+      textLength: (response.text_response || '').length,
+    }
+
+    console.info(`[BFF] Enviando respuesta al navegador (${payload.textLength} chars, ${payload.elapsedMs}ms)`)
+    return payload
+  } catch (error: unknown) {
+    let errMsg = 'Error desconocido al comunicarse con el agente analítico.'
+    let statusCode = 500
+
+    if (error && typeof error === 'object') {
+      const fetchError = error as { name?: string; message?: string }
+      if (fetchError.name === 'AbortError') {
+        errMsg = `Timeout del BFF (${CHAT_TIMEOUT_MS / 1000}s). El backend no respondió a tiempo.`
+        statusCode = 504
+      } else {
+        errMsg = fetchError.message ?? errMsg
+      }
+    }
+
+    pushLog(bffLogs, 'bff', errMsg, 'error', Date.now() - t0)
+    console.error(`[BFF] Error final: ${errMsg}`)
+
+    throw createError({
+      statusCode,
+      statusMessage: 'Error al procesar la consulta.',
+      data: { detail: errMsg, debugLog: bffLogs },
+    })
+  } finally {
+    clearTimeout(timeout)
+  }
+})

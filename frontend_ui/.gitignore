@@ -1,0 +1,19 @@
+# Nuxt / Node
+.nuxt
+.output
+node_modules
+dist
+
+# Logs
+*.log
+npm-debug.log*
+
+# Env — plantillas .env.example SÍ van al repositorio
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db

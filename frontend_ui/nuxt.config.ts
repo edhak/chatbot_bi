@@ -1,0 +1,40 @@
+// https://nuxt.com/docs/api/configuration/nuxt-config
+export default defineNuxtConfig({
+  compatibilityDate: '2024-11-01',
+  devtools: { enabled: process.env.NUXT_DEVTOOLS !== 'false' },
+
+  experimental: {
+    appManifest: false,
+  },
+
+  modules: ['@nuxtjs/tailwindcss'],
+
+  css: ['~/assets/css/main.css'],
+
+  app: {
+    head: {
+      title: 'BI Analytics — Flota de Equipos',
+      meta: [
+        { name: 'description', content: 'Asistente de inteligencia de negocios para consultas al cubo CB_BI_FlotHs' },
+      ],
+    },
+  },
+
+  runtimeConfig: {
+    agentApiUrl: process.env.AGENT_API_URL || 'http://localhost:8000',
+    defaultCubeAddress:
+      process.env.DEFAULT_CUBE_ADDRESS
+      || 'Provider=MSOLAP;Data Source=10.0.57.86;Initial Catalog=CB_BI_FlotHs;',
+    allowClientCubeAddress: process.env.ALLOW_CLIENT_CUBE_ADDRESS === 'true',
+  },
+
+  vite: {
+    optimizeDeps: {
+      include: ['echarts', 'vue-echarts'],
+    },
+  },
+
+  build: {
+    transpile: ['vue-echarts', 'echarts', 'resize-detector'],
+  },
+})
