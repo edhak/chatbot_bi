@@ -32,7 +32,7 @@ interface AgentResponse {
   textLength?: number
 }
 
-const CHAT_TIMEOUT_MS = 90_000
+const CHAT_TIMEOUT_MS = 125_000
 
 const messages = ref<ChatMessage[]>([])
 const userInput = ref('')
@@ -99,7 +99,9 @@ function toggleDax(index: number) {
 
 function canShowChart(msg: ChatMessage): boolean {
   if (msg.role !== 'agent' || !msg.chartConfig) return false
-  return msg.hasChart === true || hasValidChartConfig(msg.chartConfig)
+  if (hasValidChartConfig(msg.chartConfig)) return true
+  // BFF puede marcar hasChart por series presentes aunque data sea atípica
+  return msg.hasChart === true
 }
 
 function chartTitle(msg: ChatMessage): string {
@@ -151,9 +153,12 @@ async function sendMessage() {
     const hasChart = response.hasChart === true
       || hasValidChartConfig(response.chartConfig as Record<string, unknown>)
 
+    const agentText = (response.text || '').trim()
+      || '(Sin texto en la respuesta)'
+
     const agentMsg: ChatMessage = {
       role: 'agent',
-      text: response.text || '(Sin texto en la respuesta)',
+      text: agentText,
       question: text,
       chartConfig: response.chartConfig
         ? (JSON.parse(JSON.stringify(response.chartConfig)) as Record<string, unknown>)

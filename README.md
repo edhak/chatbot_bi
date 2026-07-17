@@ -52,16 +52,16 @@ El proyecto está completamente desacoplado en dos módulos independientes dentr
 ┌─────────────────────────────────────────────────────────────────┐
 │              agent_api  (FastAPI + LangGraph)                   │
 │  ┌──────────┐  ┌──────────────┐  ┌─────────────────────────┐ │
-│  │ main.py  │→ │ core/graph.py│→ │ tools/ssas_executor.py  │ │
-│  │ (FastAPI)│  │ (ReAct loop) │  │ (execute_dax_query)     │ │
-│  └──────────┘  └──────┬───────┘  └───────────┬─────────────┘ │
-│                         │                       │               │
-│              ┌──────────▼───────────┐           │               │
-│              │ metadata/            │           ▼               │
-│              │ cube_dictionary.py   │    ┌──────────────┐      │
-│              │ (esquema del cubo)   │    │ SSAS Tabular │      │
-│              └──────────────────────┘    │  (o mock)    │      │
-│                                          └──────────────┘      │
+│  │ main.py  │→ │ core/graph.py│→ │ tools/ssas + filter_lookup │ │
+│  │ (FastAPI)│  │ multi-agente │  │ (execute / lookup valores) │ │
+│  └──────────┘  └──────┬───────┘  └─────────────┬──────────────┘ │
+│                         │                        │               │
+│              ┌──────────▼───────────┐            ▼               │
+│              │ core/agents/         │     ┌──────────────┐      │
+│              │ translator·profiler  │     │ SSAS Tabular │      │
+│              │ viz·narrative        │     │  (o mock)    │      │
+│              └──────────────────────┘     └──────────────┘      │
+│              metadata/cube_dictionary.py (prompt DAX)            │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -76,9 +76,9 @@ El proyecto está completamente desacoplado en dos módulos independientes dentr
 | Componente | Librería |
 |---|---|
 | API HTTP | FastAPI + Uvicorn |
-| Orquestación del agente | LangGraph (patrón ReAct cíclico) |
+| Orquestación del agente | LangGraph (pipeline multi-agente) |
 | LLM | DeepSeek vía `ChatOpenAI` (`base_url` apuntando a la API de DeepSeek) |
-| Herramientas | LangChain `@tool` |
+| Herramientas | LangChain `@tool` (`lookup_dimension_values`, ejecución DAX) |
 | Validación de datos | Pydantic v2 |
 | Fuente de datos | Cubo Tabular SSAS (consultas DAX) |
 
@@ -103,10 +103,19 @@ El proyecto está completamente desacoplado en dos módulos independientes dentr
 │   ├── metadata/
 │   │   └── cube_dictionary.py          # Diccionario estático del cubo (fuente de verdad)
 │   ├── core/
-│   │   ├── state.py                    # AgentState (TypedDict para LangGraph)
-│   │   └── graph.py                    # StateGraph ReAct: agent → tools → agent
+│   │   ├── state.py                    # AgentState del pipeline multi-agente
+│   │   ├── graph.py                    # StateGraph: translator → execute → profiler → viz
+│   │   ├── chart_selector.py           # Catálogo y scoring de gráficos ECharts
+│   │   ├── chart_builder.py            # Construye echarts_config desde raw_data
+│   │   └── agents/                     # Agentes especializados
+│   │       ├── dax_translator.py       # NL → DAX (+ lookup filtros)
+│   │       ├── execute_dax.py          # Ejecución SSAS / mock
+│   │       ├── data_profiler.py        # Perfil de metadatos
+│   │       ├── visualization.py        # Selección de gráfico
+│   │       └── narrative.py            # Narrativa ejecutiva / error
 │   ├── tools/
-│   │   └── ssas_executor.py            # Herramienta execute_dax_query
+│   │   ├── ssas_executor.py            # @tool execute_dax_query
+│   │   └── filter_lookup.py            # lookup_dimension_values (Perú→PERU)
 │   ├── main.py                         # Servidor FastAPI
 │   ├── data/
 │   │   ├── dashboard.json.example      # Plantilla del dashboard ejecutivo
@@ -137,8 +146,10 @@ El proyecto está completamente desacoplado en dos módulos independientes dentr
 ├── scripts/
 │   ├── .env.cube.example               # Plantilla de conexión SSAS para pruebas
 │   ├── .env.cube                       # (no commitear – cadena ADOMD real)
+│   ├── visualizar_langgraph.py         # Exporta diagrama del grafo compilado
 │   ├── run_backend.ps1                 # Script de arranque (PowerShell)
 │   └── run_backend.bat                 # Script de arranque (CMD)
+├── documentacion/                      # Portal HTML, Word y diagramas LangGraph
 └── README.md
 ```
 
@@ -515,32 +526,50 @@ Compara la cantidad solicitada por subcategoría de producto
 
 ## Flujo Interno del Agente
 
-El grafo LangGraph implementa un patrón **ReAct cíclico**:
+El grafo LangGraph implementa un **pipeline multi-agente** (línea de ensamblaje). Cada nodo tiene una sola responsabilidad:
 
 ```
-START
-  │
-  ▼
-┌─────────┐    tool_calls?    ┌───────────────┐
-│  agent  │ ──── sí ────────► │     tools     │
-│  (LLM)  │                   │ (execute_dax) │
-└────┬────┘                   └───────┬───────┘
-     │ no                             │
-     │                                ▼
-     │                        ┌───────────────┐
-     │                        │process_results│
-     │                        │ (raw_data)    │
-     │                        └───────┬───────┘
-     │                                │
-     │◄───────────────────────────────┘
-     ▼
-   END  →  JSON { text_response, dax_query, echarts_config }
+__start__
+    │
+    ▼
+dax_translator_agent     # Solo genera DAX (diccionario cubo + lookup filtros)
+    │
+    ▼
+execute_dax_node         # Ejecuta DAX en SSAS / mock
+    │
+    ├── error && dax_retries < MAX_DAX_RETRIES (3) ──► dax_translator_agent
+    ├── error && dax_retries >= MAX               ──► error_response → __end__
+    └── ok
+         ▼
+data_profiler_agent      # Resume forma de los datos (metadatos)
+         ▼
+visualization_agent      # Elige gráfico ECharts (catálogo + reglas)
+         ▼
+narrative_agent          # Narrativa ejecutiva para el usuario
+         ▼
+      __end__  →  JSON { text_response, dax_query, echarts_config }
 ```
 
-**System Prompt del LLM incluye:**
-- Diccionario completo del cubo (`cube_dictionary.py`)
-- 3 ejemplos Short-Shot de traducción NL → DAX → ECharts
-- Formato obligatorio de respuesta JSON final
+| Nodo | Entrada clave | Salida clave |
+|---|---|---|
+| `dax_translator_agent` | `user_query` (+ error previo) | `generated_dax` |
+| `execute_dax_node` | `generated_dax` | `dax_execution_result`, `dax_retries` |
+| `data_profiler_agent` | filas OK | `data_profile_summary` |
+| `visualization_agent` | pregunta + perfil | `chart_configuration` |
+| `narrative_agent` | datos + perfil | `response_text` |
+
+**Qué se reutiliza del diseño anterior:**
+- Diccionario del cubo (`cube_dictionary.py`) solo en el traductor DAX
+- `lookup_dimension_values` para filtros (Perú → PERU)
+- `chart_selector` / `chart_builder` (bar, line, pie, treemap, etc.)
+- Contrato API sin cambios: `run_agent()` → `text_response`, `dax_query`, `echarts_config`
+
+**Diagrama desde código real:**
+
+```powershell
+python scripts/visualizar_langgraph.py --no-open
+# Salida: documentacion/imagenes/langgraph-generado/
+```
 
 ---
 

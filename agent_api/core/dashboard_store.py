@@ -17,6 +17,10 @@ _STORE_PATH = Path(os.getenv("DASHBOARD_STORE_PATH", str(_DATA_DIR / "dashboard.
 _LOCK = threading.Lock()
 
 
+def _ensure_store_dir() -> None:
+    _STORE_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
@@ -26,7 +30,7 @@ def _default_store() -> dict[str, Any]:
 
 
 def _load_unlocked() -> dict[str, Any]:
-    _DATA_DIR.mkdir(parents=True, exist_ok=True)
+    _ensure_store_dir()
     if not _STORE_PATH.exists():
         return _default_store()
     try:
@@ -39,7 +43,7 @@ def _load_unlocked() -> dict[str, Any]:
 
 
 def _save_unlocked(data: dict[str, Any]) -> None:
-    _DATA_DIR.mkdir(parents=True, exist_ok=True)
+    _ensure_store_dir()
     _STORE_PATH.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 

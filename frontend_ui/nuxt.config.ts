@@ -22,10 +22,9 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     agentApiUrl: process.env.AGENT_API_URL || 'http://localhost:8000',
-    defaultCubeAddress:
-      process.env.DEFAULT_CUBE_ADDRESS
-      || 'Provider=MSOLAP;Data Source=10.0.57.86;Initial Catalog=CB_BI_FlotHs;',
+    defaultCubeAddress: process.env.DEFAULT_CUBE_ADDRESS || '',
     allowClientCubeAddress: process.env.ALLOW_CLIENT_CUBE_ADDRESS === 'true',
+    chatTimeoutMs: Number(process.env.CHAT_TIMEOUT_MS || 125_000),
   },
 
   vite: {

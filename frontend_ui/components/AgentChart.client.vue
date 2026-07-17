@@ -2,13 +2,15 @@
 import type { EChartsOption } from 'echarts'
 import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
-import { BarChart, LineChart, PieChart } from 'echarts/charts'
+import { BarChart, LineChart, PieChart, TreemapChart, HeatmapChart, ScatterChart, RadarChart, GaugeChart, FunnelChart, CandlestickChart } from 'echarts/charts'
 import {
   GridComponent,
   TooltipComponent,
   LegendComponent,
   TitleComponent,
   DataZoomComponent,
+  VisualMapComponent,
+  RadarComponent,
 } from 'echarts/components'
 import VChart from 'vue-echarts'
 import { computed, ref, shallowRef, watch } from 'vue'
@@ -29,11 +31,20 @@ use([
   BarChart,
   LineChart,
   PieChart,
+  TreemapChart,
+  HeatmapChart,
+  ScatterChart,
+  RadarChart,
+  GaugeChart,
+  FunnelChart,
+  CandlestickChart,
   GridComponent,
   TooltipComponent,
   LegendComponent,
   TitleComponent,
   DataZoomComponent,
+  VisualMapComponent,
+  RadarComponent,
 ])
 
 const props = defineProps<{
@@ -101,16 +112,19 @@ const chartOption = computed(() => {
   const filtered = applyChartFilters(base, filterState.value)
   const themed = applyBrandChartTheme(filtered)
 
-  const title = themed.title
+  // chart_meta es metadata del backend; no lo envíe a ECharts
+  const { chart_meta: _meta, ...clean } = themed as Record<string, unknown>
+
+  const title = clean.title
   if (title && typeof title === 'object' && !Array.isArray(title) && 'text' in title) {
-    const current = String(title.text ?? '')
+    const current = String((title as { text?: string }).text ?? '')
     if (looksLikeDax(current)) {
       const fallback = sanitizeChartTitle(props.titleFallback, 'Indicador BI')
-      return { ...themed, title: { ...title, text: fallback } }
+      return { ...clean, title: { ...(title as object), text: fallback } } as EChartsOption
     }
   }
 
-  return themed
+  return clean as EChartsOption
 })
 
 function onChartFinished() {

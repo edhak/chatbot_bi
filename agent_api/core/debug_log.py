@@ -23,7 +23,11 @@ class AgentDebugTrace:
         }
         self.entries.append(entry)
         if os.getenv("AGENT_DEBUG", "true").lower() == "true":
-            print(f"[AGENT {entry['elapsed_ms']:>5}ms] [{level.upper()}] {step}: {message}")
+            line = f"[AGENT {entry['elapsed_ms']:>5}ms] [{level.upper()}] {step}: {message}"
+            try:
+                print(line)
+            except UnicodeEncodeError:
+                print(line.encode("ascii", errors="replace").decode("ascii"))
 
     def to_list(self) -> list[dict[str, Any]]:
         return list(self.entries)

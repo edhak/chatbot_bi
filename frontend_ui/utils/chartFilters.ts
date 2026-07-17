@@ -46,10 +46,11 @@ interface SeriesItem {
 }
 
 interface ChartDataset {
-  kind: 'category' | 'pie' | 'none'
+  kind: 'category' | 'pie' | 'treemap' | 'heatmap' | 'none'
   categories: string[]
   series: SeriesItem[]
   pieItems: Array<{ name: string; value: number }>
+  treemapItems: Array<{ name: string; value: number }>
   categoryAxis: 'x' | 'y'
 }
 
@@ -67,8 +68,36 @@ function toNumber(value: unknown): number {
   return 0
 }
 
+function emptyDataset(kind: ChartDataset['kind'] = 'none'): ChartDataset {
+  return {
+    kind,
+    categories: [],
+    series: [],
+    pieItems: [],
+    treemapItems: [],
+    categoryAxis: 'x',
+  }
+}
+
 function extractDataset(option: EChartsOption): ChartDataset {
-  const seriesList = asArray(option.series).map((item) => {
+  const rawSeriesList = asArray(option.series)
+
+  const heatmapRaw = rawSeriesList.find(
+    (item) => String((item as { type?: string })?.type ?? '').toLowerCase() === 'heatmap',
+  )
+  if (heatmapRaw) {
+    return emptyDataset('heatmap')
+  }
+
+  const noFilterTypes = new Set(['gauge', 'radar', 'funnel', 'scatter', 'candlestick'])
+  const specialRaw = rawSeriesList.find((item) =>
+    noFilterTypes.has(String((item as { type?: string })?.type ?? '').toLowerCase()),
+  )
+  if (specialRaw) {
+    return emptyDataset('none')
+  }
+
+  const seriesList = rawSeriesList.map((item) => {
     const raw = item as Record<string, unknown>
     const data = Array.isArray(raw.data) ? raw.data.map(toNumber) : []
     return {
@@ -80,14 +109,26 @@ function extractDataset(option: EChartsOption): ChartDataset {
 
   const pieSeries = seriesList.find((s) => s.type === 'pie')
   if (pieSeries) {
-    const rawSeries = asArray(option.series)[0] as Record<string, unknown>
+    const rawSeries = rawSeriesList[0] as Record<string, unknown>
     const pieItems = Array.isArray(rawSeries?.data)
       ? (rawSeries.data as Array<Record<string, unknown>>).map((item) => ({
           name: String(item.name ?? ''),
           value: toNumber(item.value),
         }))
       : []
-    return { kind: 'pie', categories: [], series: [], pieItems, categoryAxis: 'x' }
+    return { ...emptyDataset('pie'), pieItems }
+  }
+
+  const treemapSeries = seriesList.find((s) => s.type === 'treemap')
+  if (treemapSeries) {
+    const rawSeries = rawSeriesList[0] as Record<string, unknown>
+    const treemapItems = Array.isArray(rawSeries?.data)
+      ? (rawSeries.data as Array<Record<string, unknown>>).map((item) => ({
+          name: String(item.name ?? ''),
+          value: toNumber(item.value),
+        }))
+      : []
+    return { ...emptyDataset('treemap'), treemapItems }
   }
 
   const xAxes = asArray(option.xAxis)
@@ -102,6 +143,7 @@ function extractDataset(option: EChartsOption): ChartDataset {
       categories: ((yCategory as { data: unknown[] }).data).map(String),
       series: seriesList,
       pieItems: [],
+      treemapItems: [],
       categoryAxis: 'y',
     }
   }
@@ -112,6 +154,7 @@ function extractDataset(option: EChartsOption): ChartDataset {
       categories: ((xCategory as { data: unknown[] }).data).map(String),
       series: seriesList,
       pieItems: [],
+      treemapItems: [],
       categoryAxis: 'x',
     }
   }
@@ -123,11 +166,12 @@ function extractDataset(option: EChartsOption): ChartDataset {
       categories: Array.from({ length }, (_, i) => `Item ${i + 1}`),
       series: seriesList,
       pieItems: [],
+      treemapItems: [],
       categoryAxis: 'x',
     }
   }
 
-  return { kind: 'none', categories: [], series: [], pieItems: [], categoryAxis: 'x' }
+  return emptyDataset('none')
 }
 
 export function detectChartFilters(option: EChartsOption): ChartFilterDef[] {
@@ -177,6 +221,18 @@ export function detectChartFilters(option: EChartsOption): ChartFilterDef[] {
     })
   }
 
+  if (dataset.kind === 'treemap' && dataset.treemapItems.length >= 7) {
+    const count = dataset.treemapItems.length
+    const steps = [8, 12, 20].filter((n) => n < count)
+    filters.push({
+      type: 'topN',
+      label: 'Áreas',
+      options: [...steps, count],
+      default: Math.min(12, count),
+    })
+  }
+
+  // Heatmap: sin filtros de topN (rompe la matriz); se deja la visualMap del backend.
   return filters
 }
 
@@ -236,6 +292,15 @@ function filterCategoryDataset(
   series = series.filter((s) => state.visibleSeries[s.name] !== false)
 
   return { categories, series }
+}
+
+function filterTreemapDataset(
+  dataset: ChartDataset,
+  state: ChartFilterState,
+): Array<{ name: string; value: number }> {
+  const sorted = [...dataset.treemapItems].sort((a, b) => b.value - a.value)
+  if (state.topN >= sorted.length) return sorted
+  return sorted.slice(0, state.topN)
 }
 
 function filterPieDataset(
@@ -323,6 +388,18 @@ export function applyChartFilters(
     result.series = asArray(result.series).map((item, i) =>
       i === 0 ? { ...(item as object), data: pieData } : item,
     )
+    return result
+  }
+
+  if (dataset.kind === 'treemap' && dataset.treemapItems.length > 0) {
+    const treemapData = filterTreemapDataset(dataset, state)
+    result.series = asArray(result.series).map((item, i) =>
+      i === 0 ? { ...(item as object), data: treemapData } : item,
+    )
+    return result
+  }
+
+  if (dataset.kind === 'heatmap') {
     return result
   }
 

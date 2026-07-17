@@ -10,7 +10,7 @@ services:
       HOST_IP: ${HOST_IP:-}
       NUXT_HOST: 0.0.0.0
       NUXT_PORT: 3000
-      DEFAULT_CUBE_ADDRESS: Provider=MSOLAP;Data Source=10.0.57.86;Initial Catalog=CB_BI_FlotHs;
+      CHAT_TIMEOUT_MS: "125000"
       NUXT_TELEMETRY_DISABLED: "1"
       CHOKIDAR_USEPOLLING: "true"
       NUXT_DEVTOOLS: "false"
@@ -52,7 +52,7 @@ services:
             for (const base of unique) {
               const url = base + "/health";
               try {
-                const r = await fetch(url, { signal: AbortSignal.timeout(4000) });
+                const r = await fetch(url, { signal: AbortSignal.timeout(8000) });
                 if (r.ok) {
                   console.log("CONECTIVIDAD OK:", base);
                   const fs = require("fs");

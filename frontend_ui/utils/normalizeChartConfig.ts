@@ -1,6 +1,17 @@
 import type { EChartsOption } from 'echarts'
 
-const SUPPORTED_TYPES = new Set(['bar', 'line', 'pie'])
+const SUPPORTED_TYPES = new Set([
+  'bar',
+  'line',
+  'pie',
+  'treemap',
+  'heatmap',
+  'scatter',
+  'radar',
+  'gauge',
+  'funnel',
+  'candlestick',
+])
 
 /**
  * Asegura que series sea un array y convierte tipos no registrados en ECharts del frontend.

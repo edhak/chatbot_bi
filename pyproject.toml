@@ -16,10 +16,16 @@ dependencies = [
     "langgraph>=0.2.0",
     "pydantic>=2.0.0",
     "python-dotenv>=1.0.0",
-    "pandas>=2.0.0
+    "pandas>=2.0.0",
+]
 
 [project.optional-dependencies]
-ssas = ["pyadomd>=0.1.1"]",
+ssas = [
+    "pyadomd>=0.1.1",
+    "pythonnet>=3.0.0",
+]
+dev = [
+    "Pillow>=10.0.0",
 ]
 
 [tool.setuptools.packages.find]

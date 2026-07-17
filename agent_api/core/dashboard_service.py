@@ -32,7 +32,9 @@ def _execute_dax(cube_address: str, dax_query: str) -> list[dict[str, Any]]:
     use_mock = os.getenv("SSAS_USE_MOCK", "false").lower() == "true"
 
     if use_mock:
-        return [{"Total registros": 965}]
+        from agent_api.tools.ssas_executor import _execute_mock
+
+        return _execute_mock(safe_query)
 
     rows = run_dax(cube_address, safe_query)
     return truncate_rows(rows)

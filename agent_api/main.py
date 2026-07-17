@@ -35,7 +35,7 @@ load_dotenv(_ENV_PATH)
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("agent_api")
 
-REQUEST_TIMEOUT_SEC = int(os.getenv("AGENT_REQUEST_TIMEOUT_SEC", "90"))
+REQUEST_TIMEOUT_SEC = int(os.getenv("AGENT_REQUEST_TIMEOUT_SEC", "120"))
 
 
 class QueryRequest(BaseModel):
@@ -92,7 +92,23 @@ class DashboardCheckResponse(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     if not os.getenv("DEEPSEEK_API_KEY"):
-        raise RuntimeError("DEEPSEEK_API_KEY no está configurada. Revise su archivo .env")
+        raise RuntimeError(
+            "DEEPSEEK_API_KEY no está configurada. "
+            "Copie agent_api/.env.example a agent_api/.env y complete la clave."
+        )
+    use_mock = os.getenv("SSAS_USE_MOCK", "false").lower() == "true"
+    if not use_mock:
+        cube = os.getenv("DEFAULT_CUBE_ADDRESS", "").strip()
+        if not cube or "YOUR_SSAS_HOST" in cube:
+            raise RuntimeError(
+                "DEFAULT_CUBE_ADDRESS no está configurada para este entorno. "
+                "Edite agent_api/.env o active SSAS_USE_MOCK=true para desarrollo sin cubo."
+            )
+    logger.info(
+        "Agent API listo | mock=%s | cors=%s",
+        use_mock,
+        os.getenv("CORS_ORIGINS", "http://localhost:3000"),
+    )
     yield
 
 
@@ -144,10 +160,11 @@ async def query_cube(payload: QueryRequest) -> QueryResponse:
         )
 
         logger.info(
-            "Query completada en %dms | text=%d chars | chart=%s | enviando respuesta HTTP",
+            "Query completada en %dms | text=%d chars | chart=%s | series=%s | enviando respuesta HTTP",
             elapsed,
             len(result.get("text_response", "")),
-            bool(result.get("echarts_config", {}).get("series")),
+            bool((result.get("echarts_config") or {}).get("series")),
+            type((result.get("echarts_config") or {}).get("series")).__name__,
         )
 
         return response
@@ -249,9 +266,10 @@ async def check_dashboard_dax(
 if __name__ == "__main__":
     import uvicorn
 
+    reload = os.getenv("UVICORN_RELOAD", "true").lower() == "true"
     uvicorn.run(
         "agent_api.main:app",
         host=os.getenv("HOST", "0.0.0.0"),
         port=int(os.getenv("PORT", "8000")),
-        reload=True,
+        reload=reload,
     )

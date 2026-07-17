@@ -1,7 +1,6 @@
 import type { EChartsOption } from 'echarts'
 import { fetchAgentQuery, type DebugLogEntry } from '../utils/fetchAgent'
 
-const CHAT_TIMEOUT_MS = 90_000
 const MAX_MESSAGE_LENGTH = 500
 
 function pushLog(logs: DebugLogEntry[], step: string, message: string, level = 'info', elapsed_ms = 0) {
@@ -28,11 +27,14 @@ export default defineEventHandler(async (event) => {
   }
 
   const config = useRuntimeConfig()
+  const chatTimeoutMs = Number(config.chatTimeoutMs || process.env.CHAT_TIMEOUT_MS || 125_000)
+  const allowClientCube =
+    config.allowClientCubeAddress === 'true' || config.allowClientCubeAddress === true
   const agentApiUrl = config.agentApiUrl as string
-  const allowClientCube = config.allowClientCubeAddress === 'true' || config.allowClientCubeAddress === true
-  const cubeAddress = allowClientCube && body.cube_address?.trim()
-    ? body.cube_address.trim()
-    : (config.defaultCubeAddress as string)
+  const cubeAddress =
+    allowClientCube && body.cube_address?.trim()
+      ? body.cube_address.trim()
+      : (config.defaultCubeAddress as string)
 
   pushLog(bffLogs, 'bff', `URL primaria: ${agentApiUrl}`, 'info', Date.now() - t0)
   if (process.env.DOCKER_GATEWAY) {
@@ -43,7 +45,7 @@ export default defineEventHandler(async (event) => {
   }
 
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), CHAT_TIMEOUT_MS)
+  const timeout = setTimeout(() => controller.abort(), chatTimeoutMs)
 
   try {
     const { data: response, usedUrl } = await fetchAgentQuery(
@@ -63,17 +65,27 @@ export default defineEventHandler(async (event) => {
     )
 
     const mergedLogs = [...bffLogs, ...(response.debug_log ?? [])]
+    const chartConfig = (response.echarts_config ?? {}) as Record<string, unknown>
+    const series = chartConfig.series
+    const seriesItems = Array.isArray(series) ? series : series ? [series] : []
+    const hasSeriesData = seriesItems.some((item) => {
+      if (!item || typeof item !== 'object') return false
+      const data = (item as { data?: unknown }).data
+      return Array.isArray(data) && data.length > 0
+    })
     const payload = {
       text: response.text_response || '(Respuesta vacía del backend)',
       dax: response.dax_query,
-      chartConfig: response.echarts_config,
+      chartConfig,
       debugLog: mergedLogs,
       elapsedMs: Date.now() - t0,
-      hasChart: Boolean(response.echarts_config?.series),
+      hasChart: hasSeriesData,
       textLength: (response.text_response || '').length,
     }
 
-    console.info(`[BFF] Enviando respuesta al navegador (${payload.textLength} chars, ${payload.elapsedMs}ms)`)
+    console.info(
+      `[BFF] Enviando respuesta al navegador (${payload.textLength} chars, chart=${hasSeriesData}, series=${seriesItems.length}, ${payload.elapsedMs}ms)`,
+    )
     return payload
   } catch (error: unknown) {
     let errMsg = 'Error desconocido al comunicarse con el agente analítico.'
@@ -82,7 +94,7 @@ export default defineEventHandler(async (event) => {
     if (error && typeof error === 'object') {
       const fetchError = error as { name?: string; message?: string }
       if (fetchError.name === 'AbortError') {
-        errMsg = `Timeout del BFF (${CHAT_TIMEOUT_MS / 1000}s). El backend no respondió a tiempo.`
+        errMsg = `Timeout del BFF (${chatTimeoutMs / 1000}s). El backend no respondió a tiempo.`
         statusCode = 504
       } else {
         errMsg = fetchError.message ?? errMsg

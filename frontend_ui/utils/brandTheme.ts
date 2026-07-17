@@ -72,9 +72,37 @@ export function applyLegendLayout(option: EChartsOption): EChartsOption {
   if (!items.length) return result
 
   const hasPie = items.some((s) => String(s.type ?? '').toLowerCase() === 'pie')
+  const hasTreemap = items.some((s) => String(s.type ?? '').toLowerCase() === 'treemap')
+  const hasHeatmap = items.some((s) => String(s.type ?? '').toLowerCase() === 'heatmap')
+  const hasGauge = items.some((s) => String(s.type ?? '').toLowerCase() === 'gauge')
+  const hasRadar = items.some((s) => String(s.type ?? '').toLowerCase() === 'radar')
+  const hasFunnel = items.some((s) => String(s.type ?? '').toLowerCase() === 'funnel')
   const multiSeries = items.length > 1
   const legendNames = legendSeriesNames(result)
   const needsLegend = hasPie || multiSeries || legendNames.length > 1
+
+  if (hasTreemap || hasHeatmap || hasGauge || (hasFunnel && !needsLegend)) {
+    result.legend = { show: false }
+    if (typeof result.title === 'object' && !Array.isArray(result.title)) {
+      result.title = {
+        ...result.title,
+        left: result.title.left ?? 'center',
+        top: result.title.top ?? 8,
+        textStyle: {
+          fontSize: 14,
+          fontWeight: 600,
+          color: UI.text,
+          ...result.title.textStyle,
+        },
+      }
+    }
+    return result
+  }
+
+  if (hasRadar && !needsLegend) {
+    result.legend = { show: false }
+    return result
+  }
 
   if (typeof result.title === 'object' && !Array.isArray(result.title)) {
     result.title = {

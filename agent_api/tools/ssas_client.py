@@ -27,12 +27,74 @@ _adomd_configured = False
 _COLUMN_KEY_PATTERN = re.compile(r"\[([^\]]+)\]$")
 
 
+_CLR_INT_TYPES = {
+    "Int16", "Int32", "Int64", "UInt16", "UInt32", "UInt64",
+    "Byte", "SByte", "SqlInt16", "SqlInt32", "SqlInt64", "SqlByte",
+}
+_CLR_FLOAT_TYPES = {
+    "Single", "Double", "Decimal", "SqlDecimal", "SqlSingle", "SqlDouble", "SqlMoney",
+}
+
+
+def _normalize_cell(value: Any) -> Any:
+    """Convierte valores CLR/.NET a tipos JSON-serializables (int/float/str)."""
+    if value is None or isinstance(value, (str, bool)):
+        return value
+    if isinstance(value, int) and not isinstance(value, bool):
+        return int(value)
+    if isinstance(value, float):
+        return float(value)
+    try:
+        from decimal import Decimal
+
+        if isinstance(value, Decimal):
+            return float(value)
+    except Exception:
+        pass
+    if hasattr(value, "isoformat"):
+        try:
+            return value.isoformat()
+        except Exception:
+            pass
+
+    type_name = type(value).__name__
+    if type_name in _CLR_INT_TYPES:
+        try:
+            return int(str(value).strip())
+        except Exception:
+            try:
+                return int(value)  # type: ignore[arg-type]
+            except Exception:
+                return str(value)
+    if type_name in _CLR_FLOAT_TYPES:
+        try:
+            return float(str(value).strip().replace(",", ""))
+        except Exception:
+            try:
+                return float(value)  # type: ignore[arg-type]
+            except Exception:
+                return str(value)
+    if type_name in {"DateTime", "Date", "TimeSpan", "SqlDateTime"}:
+        return str(value)
+
+    # Último intento: números empaquetados por pythonnet
+    try:
+        as_float = float(value)  # type: ignore[arg-type]
+        if as_float == int(as_float) and abs(as_float) < 1e15:
+            return int(as_float)
+        return as_float
+    except Exception:
+        pass
+    return value
+
+
 def _normalize_row(row: dict[str, Any]) -> dict[str, Any]:
-    """Convierte claves 'Tabla[Columna]' a 'Columna' para facilitar gráficos y narrativa."""
+    """Convierte claves 'Tabla[Columna]' a 'Columna' y valores a tipos JSON-safe."""
     normalized: dict[str, Any] = {}
     for key, value in row.items():
         match = _COLUMN_KEY_PATTERN.search(str(key))
-        normalized[match.group(1) if match else str(key)] = value
+        clean_key = match.group(1) if match else str(key)
+        normalized[clean_key] = _normalize_cell(value)
     return normalized
 
 

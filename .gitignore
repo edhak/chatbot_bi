@@ -3,11 +3,14 @@
 # =============================================================================
 .env
 .env.local
+.env.production
+.env.staging
 .env.*.local
 !.env.example
 !**/.env.example
 
 scripts/.env.cube
+scripts/.env.*
 !scripts/.env.cube.example
 
 # Credenciales y claves

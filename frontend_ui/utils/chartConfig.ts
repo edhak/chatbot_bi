@@ -16,7 +16,13 @@ export function hasValidChartConfig(
     const data = (item as { data?: unknown }).data
     if (!Array.isArray(data) || data.length === 0) return false
     const type = String((item as { type?: string }).type ?? 'bar').toLowerCase()
-    if (type === 'pie') {
+    if (type === 'pie' || type === 'treemap' || type === 'heatmap' || type === 'funnel') {
+      return data.some((d) => d !== null && d !== undefined)
+    }
+    if (type === 'gauge' || type === 'radar') {
+      return data.length > 0
+    }
+    if (type === 'scatter' || type === 'candlestick') {
       return data.some((d) => d !== null && d !== undefined)
     }
     return data.some((d) => d !== null && d !== undefined && d !== '')

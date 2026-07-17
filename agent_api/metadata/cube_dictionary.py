@@ -149,11 +149,18 @@ def get_cube_dictionary_prompt() -> str:
         "- Usa ÚNICAMENTE tablas y columnas listadas arriba.",
         "- Tablas con espacios van entre comillas simples: 'BI_FlotHs Mod01_Equipo'.",
         "- Columnas: 'BI_FlotHs Mod01_Equipo'[Pais_Destino]",
-        "- Las consultas deben comenzar con EVALUATE.",
-        "- Para conteos: EVALUATE ROW(\"Total\", COUNTROWS('Tabla'))",
-        "- Para agrupaciones: EVALUATE SUMMARIZECOLUMNS('Tabla'[Columna], \"Total\", COUNTROWS('Tabla'))",
-        "- Para top N: EVALUATE TOPN(10, SUMMARIZECOLUMNS(...), [Medida])",
-        "- Para filtros: EVALUATE FILTER('Tabla', 'Tabla'[Columna] = \"valor\")",
+        "- Toda consulta debe iniciar con la palabra clave EVALUATE y luego la expresión de tabla.",
+        "- Conteos: EVALUATE ROW(\"Total\", COUNTROWS('Tabla'))",
+        "- Agrupaciones: EVALUATE SUMMARIZECOLUMNS('Tabla'[Columna], \"Total\", COUNTROWS('Tabla'))",
+        "- Top N: EVALUATE TOPN(10, SUMMARIZECOLUMNS(...), [Medida])",
+        "- Filtros: EVALUATE FILTER('Tabla', 'Tabla'[Columna] = \"valor\")",
+        "",
+        "FILTROS POR VALORES CATEGÓRICOS (país, región, cliente, etc.):",
+        "- Si la pregunta menciona un filtro geográfico o por categoría, NO adivines el valor.",
+        "- PRIMERO llama lookup_dimension_values (tabla, columna, search_hint NO vacío: ej. Perú).",
+        "- Usa en DAX los valores EXACTOS devueltos (p. ej. PERU, no Perú, si así viene del cubo).",
+        "- Columnas geográficas frecuentes: Pais_Destino, Pais Cliente Operación, Region_Destino.",
+        "- NO llames execute_dax_query: otro nodo del pipeline ejecuta el DAX. Solo genera la consulta.",
     ])
 
     return "\n".join(lines)
