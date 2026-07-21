@@ -1,0 +1,19 @@
+﻿TABLE_QUALIFIER;TABLE_OWNER;TABLE_NAME;CUBE_TABLE_NAME;COLUMN_NAME;TIPO_VARIABLE;DESCRIPCION;Observación;eliminar observaciones
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;MANDT;nvarchar;Mandante (Cliente SAP);;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;CONTADOR;int;Contador o correlativo interno de modificaciones;;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;PEDIDO_COMPRA;nvarchar;Número de pedido de compra (Documento);;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;POSICION;nvarchar;Número de posición dentro del pedido de compra;;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;REPARTO;nvarchar;Número de reparto (Programa de entregas);;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;NUMERO_MODIF;nvarchar;Número de documento de modificación;;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;VERSION;nvarchar;Versión de la modificación;;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;MOTIVO;nvarchar;Motivo de la operación o modificación;;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;DESCRIPCION_MOTIVO;nvarchar;Descripción del motivo de la modificación;;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;CLASE_OBJETO;nvarchar;Clase de objeto de modificación;;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;NOMBRE_TABLA;nvarchar;Nombre de la tabla modificada;;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;NOMBRE_CAMPO;nvarchar;Nombre del campo modificado en la tabla;;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;VALOR_NUEVO;nvarchar;Nuevo valor tras la modificación;;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;VALOR_ANTIGUO;nvarchar;Valor anterior antes de la modificación;;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;MODIFICADO_POR;nvarchar;Usuario que realizó la modificación;;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;FECHA;nvarchar;Fecha de la modificación;;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;HORA;nvarchar;Hora de la modificación;;
+RESEMIN_BI;BI_OTIF;TH_PedidoVersModif;TH_PedidoVersModif;Cal_Registro;varchar;Cálculo o indicador del registro;;

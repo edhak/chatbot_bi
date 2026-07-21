@@ -1,5 +1,8 @@
 <script setup lang="ts">
 const route = useRoute()
+const { selectedSeudonimo, hydrate } = useDataSources()
+
+onMounted(() => hydrate())
 
 const tabs = [
   { label: 'Consultas', to: '/', icon: 'chat' },
@@ -7,9 +10,24 @@ const tabs = [
   { label: 'Power BI', to: '/powerbi', icon: 'powerbi' },
 ]
 
+const sourcesOpen = useState('data-sources-sidebar-open', () => true)
+
+const subtitle = computed(() =>
+  selectedSeudonimo.value
+    ? `Fuente activa: ${selectedSeudonimo.value}`
+    : 'Seleccione una fuente de datos',
+)
+
 function isActive(path: string): boolean {
   if (path === '/') return route.path === '/'
   return route.path.startsWith(path)
+}
+
+function toggleSources() {
+  sourcesOpen.value = !sourcesOpen.value
+  if (import.meta.client) {
+    localStorage.setItem('bi-sources-sidebar-open-v1', sourcesOpen.value ? '1' : '0')
+  }
 }
 </script>
 
@@ -17,7 +35,23 @@ function isActive(path: string): boolean {
   <header class="bg-brand-dark shadow-executive">
     <div class="h-1 bg-brand-yellow" />
     <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4">
-      <div class="flex items-center gap-4">
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          class="flex h-9 w-9 items-center justify-center rounded-lg border border-white/20 text-white transition hover:bg-white/10"
+          :title="sourcesOpen ? 'Ocultar fuentes' : 'Mostrar fuentes'"
+          :aria-label="sourcesOpen ? 'Ocultar fuentes' : 'Mostrar fuentes'"
+          @click="toggleSources"
+        >
+          <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.75"
+              d="M4 6h16M4 12h10M4 18h14"
+            />
+          </svg>
+        </button>
         <div class="flex h-11 w-11 items-center justify-center rounded-lg bg-brand-blue">
           <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path
@@ -33,7 +67,7 @@ function isActive(path: string): boolean {
             Inteligencia de Negocios
           </h1>
           <p class="text-xs text-brand-light/80">
-            Cubo CB_BI_FlotHs · Flota de Equipos
+            {{ subtitle }}
           </p>
         </div>
       </div>

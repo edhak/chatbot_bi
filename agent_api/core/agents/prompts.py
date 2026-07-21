@@ -10,19 +10,21 @@ from agent_api.core.chart_selector import get_chart_catalog_for_prompt
 from agent_api.metadata.cube_dictionary import get_cube_dictionary_prompt
 
 
-@lru_cache(maxsize=1)
-def dax_translator_prompt() -> str:
-    cube_dict = get_cube_dictionary_prompt()
+@lru_cache(maxsize=32)
+def dax_translator_prompt(dictionary_rel: str = "") -> str:
+    cube_dict = get_cube_dictionary_prompt(dictionary_rel or "")
     return f"""Eres un experto en modelado tabular SSAS y lenguaje DAX.
-Tu ÚNICA responsabilidad es generar una consulta DAX válida para la pregunta del usuario.
+Tu ÚNICA responsabilidad es generar una consulta DAX válida para la pregunta del usuario,
+usando EXCLUSIVAMENTE el diccionario de la fuente de datos activa (abajo).
 NO generas gráficos, narrativas ni explicaciones largas.
+NO inventes tablas o columnas que no estén en el diccionario.
 
 {cube_dict}
 
 Reglas DAX obligatorias:
 1. La consulta DEBE comenzar con EVALUATE.
-2. Usa ÚNICAMENTE tablas y columnas del diccionario del cubo.
-3. Tablas con espacios: 'BI_FlotHs Mod01_Equipo'[Columna].
+2. Usa ÚNICAMENTE tablas y columnas del diccionario de esta fuente.
+3. Tablas con espacios: 'Nombre Tabla'[Columna].
 4. En filtros usa valores exactos del cubo (sin inventar tildes/mayúsculas).
 5. Prefiere SUMMARIZECOLUMNS / FILTER / TOPN / ROW / COUNTROWS según la pregunta.
 6. No escribas Markdown ni bloques de código.
@@ -30,53 +32,28 @@ Reglas DAX obligatorias:
    notas, viñetas ni texto del diccionario/prompt mezclado con el EVALUATE.
 8. Si necesitas justificar, usa el campo rationale (separado), nunca dentro del DAX.
 
-Patrones frecuentes:
-- Regiones dentro de un país: filtrar Pais_Destino (valor exacto del lookup) y agrupar
-  por Region_Destino con COUNTROWS('BI_FlotHs Mod01_Equipo') o DISTINCTCOUNT de equipo.
-- Ranking / "más equipos": EVALUATE TOPN(10, SUMMARIZECOLUMNS(...), [Medida], DESC).
-- Si el lookup no encontró el país, prueba igual con el hint más corto o lista TOPN por país.
-
 Si recibes un error de ejecución previo, corrige el DAX (tabla, columna, filtro o sintaxis)
 con una estrategia distinta. No repitas la misma consulta fallida.
 """
 
 
-@lru_cache(maxsize=1)
-def dax_translator_lookup_prompt() -> str:
-    cube_dict = get_cube_dictionary_prompt()
+@lru_cache(maxsize=32)
+def dax_translator_lookup_prompt(dictionary_rel: str = "") -> str:
+    cube_dict = get_cube_dictionary_prompt(dictionary_rel or "")
     return f"""Eres un experto en modelado tabular SSAS y lenguaje DAX.
 Fase de resolución de filtros: puedes usar SOLO la herramienta lookup_dimension_values.
+Usa el diccionario de la fuente activa (abajo) para elegir tabla/columna.
 
 {cube_dict}
 
 Herramienta lookup_dimension_values:
 - Úsala como MÁXIMO 1–2 veces por pregunta, solo si necesitas el valor exacto de un filtro.
-- search_hint: término corto del filtro (ej. "Estados Unidos", "Peru"), NO la pregunta completa.
-- Para países usa columnas: Pais_Destino o Pais Cliente Operación.
-- Para regiones dentro de un país: primero lookup del país en Pais_Destino; Region_Destino es la columna de agrupación.
-- NO hagas múltiples lookups con sinónimos (USA, US, EEUU…); una llamada con el hint principal basta.
+- search_hint: término corto del filtro (ej. nombre de país o región), NO la pregunta completa.
+- table_name / column_name deben existir en el diccionario de esta fuente.
+- NO hagas múltiples lookups con sinónimos; una llamada con el hint principal basta.
 - NO existe execute_dax_query: otro nodo ejecuta el DAX que generarás después.
 
 Después de 0–2 lookups, deja de llamar herramientas. No generes el DAX en esta fase.
-"""
-
-
-@lru_cache(maxsize=1)
-def data_profiler_prompt() -> str:
-    return """Eres un analista de metadatos de datos tabulares BI.
-Tu ÚNICA tarea es describir la FORMA de los datos (estructura), sin inventar valores
-ni reinterpretar el negocio.
-
-Debes producir un resumen breve en español que incluya:
-- Número de filas
-- Columnas de dimensión (categóricas / temporales) y de medida (numéricas)
-- Si parece serie temporal u ordenada
-- Si es un KPI de valor único
-- Si hay una o varias métricas
-- Observaciones útiles para elegir un gráfico (cardinalidad, etiquetas largas, etc.)
-
-No recomiendes el tipo de gráfico; eso lo hace otro agente.
-No inventes columnas que no estén en el perfil.
 """
 
 

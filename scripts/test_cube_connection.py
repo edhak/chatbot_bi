@@ -106,7 +106,11 @@ def _print_results(label: str, rows: list[dict[str, Any]], max_rows: int = 25) -
         return
 
     columns = list(rows[0].keys())
-    col_width = min(30, max(12, max(len(str(c)) for c in columns)))
+    # Ancho suficiente para no truncar nombres de tabla SSAS (ej. TH_PedidoVersModif)
+    col_width = min(48, max(16, max(len(str(c)) for c in columns)))
+    for row in rows[: min(max_rows, 5)]:
+        for col in columns:
+            col_width = max(col_width, min(48, len(str(row.get(col, "")))))
     header = " | ".join(f"{str(col)[:col_width]:<{col_width}}" for col in columns)
     print(header)
     print("-" * len(header))

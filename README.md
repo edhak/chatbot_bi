@@ -27,6 +27,7 @@ El proyecto está completamente desacoplado en dos módulos independientes dentr
 - [Probar el Flujo Completo](#probar-el-flujo-completo)
 - [API Reference](#api-reference)
 - [Flujo Interno del Agente](#flujo-interno-del-agente)
+- [Subagentes (detalle)](documentacion/subagentes/README.md)
 - [Conexión a SSAS en Producción](#conexión-a-ssas-en-producción)
 - [Solución de Problemas](#solución-de-problemas)
 
@@ -344,8 +345,8 @@ copy scripts\.env.cube.example scripts\.env.cube
 # 1. Activar el entorno Conda
 conda activate py312da
 
-# 2. Ir a la raíz del proyecto
-cd "c:\Users\edwin.paucar\OneDrive - RESEMIN S.A\Documentos\DocumentesE\TI\Agente_data_sapbot\200-code-agente-da"
+# 2. Ir a la raíz del proyecto (carpeta que contiene agent_api/ y frontend_ui/)
+cd ruta\al\200-code-agente-da
 
 # 3. Instalar el paquete en modo editable (resuelve el error ModuleNotFoundError)
 pip install -e .
@@ -557,6 +558,10 @@ narrative_agent          # Narrativa ejecutiva para el usuario
 | `data_profiler_agent` | filas OK | `data_profile_summary` |
 | `visualization_agent` | pregunta + perfil | `chart_configuration` |
 | `narrative_agent` | datos + perfil | `response_text` |
+
+**Documentación detallada por subagente** (estructura interna, I/O, dependencias):
+
+→ [`documentacion/subagentes/`](documentacion/subagentes/README.md)
 
 **Qué se reutiliza del diseño anterior:**
 - Diccionario del cubo (`cube_dictionary.py`) solo en el traductor DAX

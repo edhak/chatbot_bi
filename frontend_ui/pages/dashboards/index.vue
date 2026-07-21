@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DashboardEntry } from '~/composables/useDashboard'
 import { hasValidChartConfig } from '~/utils/chartConfig'
+import { maskCubeAddress } from '~/utils/maskSensitive'
 
 const { fetchDashboard, refreshItem, refreshAll, removeById } = useDashboard()
 
@@ -228,6 +229,20 @@ onMounted(loadDashboard)
                 <span>{{ item.row_count ?? 0 }} filas</span>
                 <span>Última act.: {{ formatDate(item.last_refresh_at) }}</span>
                 <span v-if="item.elapsed_ms">{{ item.elapsed_ms }}ms</span>
+                <span
+                  v-if="item.seudonimo"
+                  class="rounded bg-brand-blue/10 px-1.5 py-0.5 font-semibold text-brand-blue"
+                  :title="maskCubeAddress(item.cube_address)"
+                >
+                  Fuente: {{ item.seudonimo }}
+                </span>
+                <span
+                  v-else-if="item.cube_address"
+                  class="max-w-full truncate font-mono"
+                  :title="maskCubeAddress(item.cube_address)"
+                >
+                  Cubo: {{ maskCubeAddress(item.cube_address) }}
+                </span>
               </div>
             </div>
 

@@ -3,6 +3,8 @@ export interface DashboardEntry {
   title: string
   question: string
   dax_query: string
+  cube_address?: string | null
+  seudonimo?: string | null
   chartConfig: Record<string, unknown>
   created_at?: string
   updated_at?: string
@@ -20,8 +22,21 @@ function normalizeDax(dax: string): string {
 }
 
 export function useDashboard() {
+  const { cubeAddress, selectedSeudonimo, hydrate } = useDataSources()
+
+  function activeCube(): string {
+    hydrate()
+    return cubeAddress.value?.trim() || ''
+  }
+
+  function activeSeudonimo(): string {
+    hydrate()
+    return selectedSeudonimo.value?.trim() || ''
+  }
+
   async function loadIncludedMap() {
     try {
+      // Sin forzar el cubo activo: cada ítem usa su fuente guardada
       const data = await $fetch<{ items: DashboardEntry[] }>('/api/dashboard')
       const daxSet = new Set<string>()
       const idMap = new Map<string, string>()
@@ -47,10 +62,16 @@ export function useDashboard() {
     title: string
     question: string
     dax_query: string
+    cube_address?: string
+    seudonimo?: string
   }): Promise<DashboardEntry> {
     const entry = await $fetch<DashboardEntry>('/api/dashboard', {
       method: 'POST',
-      body: payload,
+      body: {
+        ...payload,
+        cube_address: payload.cube_address || activeCube(),
+        seudonimo: payload.seudonimo || activeSeudonimo() || undefined,
+      },
     })
     const key = normalizeDax(entry.dax_query)
     includedDaxSet.value = new Set([...includedDaxSet.value, key])
@@ -87,7 +108,10 @@ export function useDashboard() {
   }
 
   async function refreshItem(id: string): Promise<DashboardEntry> {
-    return $fetch<DashboardEntry>(`/api/dashboard/${id}/refresh`, { method: 'POST' })
+    // No enviar cubo activo: el backend usa cube_address/seudonimo del ítem
+    return $fetch<DashboardEntry>(`/api/dashboard/${id}/refresh`, {
+      method: 'POST',
+    })
   }
 
   async function refreshAll(): Promise<DashboardEntry[]> {

@@ -1,0 +1,22 @@
+﻿TABLE_QUALIFIER;TABLE_OWNER;TABLE_NAME;CUBE_TABLE_NAME;COLUMN_NAME;TIPO_VARIABLE;DESCRIPCION;Observación;eliminar observaciones
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;PERIODO;nvarchar;Periodo de análisis (Año y Mes);;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;PERMES;nvarchar;Periodo mensual (Mes);;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;BEDAT;nvarchar;Fecha del documento de compras (Creación);;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;WAERS;nvarchar;Clave de moneda (Moneda del documento);;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;Clase doc. compras;nvarchar;Clase de documento de compras (Ej: Pedido estándar);;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;EBELN;nvarchar;Número de documento de compras / Pedido;;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;EBELP;nvarchar;Número de posición del documento de compras;;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;SAP;nvarchar;Código SAP del material o artículo;;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;MENGE;numeric;Cantidad del pedido de compras;Tiene los espacios en Blanco;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;NETWR;numeric;Valor neto del pedido de compras;;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;LIFNR;nvarchar;Número de cuenta del proveedor / Acreedor;;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;RLWRT;numeric;Valor total de la posición (Moneda local/doc);;en que se diferencia con código de cliente de SAP
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;NAME_PROVEEDOR;nvarchar;Nombre o razón social del proveedor;;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;U_P;numeric;Unidades Pedidas (Cantidad solicitada);;y este en que se deferencian de los otros clientes
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;E_U;numeric;Unidades Entregadas (Cantidad recibida);;y este en que se diferencia de los clientes?
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;E_P;numeric;Entregas Pendientes (Cantidad faltante);;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;PUNIT_USD;numeric;Precio unitario en dólares estadounidenses (USD);;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;PUNIT_PEN;numeric;Precio unitario en soles (PEN);;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;MONTO_USD;numeric;Monto total en dólares estadounidenses (USD);;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;MONTO_PEN;numeric;Monto total en soles (PEN);;
+RESEMIN_BI;BI_OTIF;TH_Grf_AcumPedido;TH_AcumPedido;MATKL;nvarchar;Grupo de artículos o categoría de material;;Este dato se actualiza, o solo es el estado que se le pone al momento de entregar la maquina

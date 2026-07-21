@@ -1,12 +1,20 @@
+<script setup lang="ts">
+const { powerBiUrl, selectedSeudonimo, hydrate } = useDataSources()
+onMounted(() => hydrate())
+
+const embedUrl = computed(() => powerBiUrl.value?.trim() || '')
+const title = computed(() => selectedSeudonimo.value || 'Power BI')
+</script>
+
 <template>
   <div class="flex h-full flex-col">
     <div class="border-b border-brand-light bg-white px-6 py-4 shadow-sm">
       <div class="mx-auto max-w-6xl">
         <h2 class="text-lg font-semibold text-brand-dark">
-          BI FlotHs
+          {{ title }}
         </h2>
         <p class="text-xs text-[#6B6B6A]">
-          Dashboard publicado en Power BI · BI_FlotHs_v0201
+          Dashboard Power BI de la fuente seleccionada
         </p>
       </div>
     </div>

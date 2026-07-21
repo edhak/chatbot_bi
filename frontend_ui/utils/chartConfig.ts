@@ -37,8 +37,8 @@ const DAX_MARKERS = [
   'ORDER BY',
   'DEFINE',
   'VAR ',
-  "'BI_FLOTHS",
-  'MOD01_EQUIPO',
+  'FILTER(',
+  'ROW(',
 ]
 
 export function looksLikeDax(text: string): boolean {

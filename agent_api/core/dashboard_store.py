@@ -69,13 +69,23 @@ def find_by_dax(dax_query: str) -> dict[str, Any] | None:
     return None
 
 
-def add_item(*, title: str, question: str, dax_query: str) -> dict[str, Any]:
+def add_item(
+    *,
+    title: str,
+    question: str,
+    dax_query: str,
+    cube_address: str | None = None,
+    seudonimo: str | None = None,
+) -> dict[str, Any]:
     now = _now_iso()
     item = {
         "id": str(uuid.uuid4()),
         "title": title.strip() or "Indicador BI",
         "question": question.strip(),
         "dax_query": dax_query.strip(),
+        # Fuente original: se conserva al refrescar aunque el usuario cambie el cubo global
+        "cube_address": (cube_address or "").strip() or None,
+        "seudonimo": (seudonimo or "").strip() or None,
         "created_at": now,
         "updated_at": now,
         "last_refresh_at": None,
@@ -86,6 +96,17 @@ def add_item(*, title: str, question: str, dax_query: str) -> dict[str, Any]:
         items = data.setdefault("items", [])
         for existing in items:
             if str(existing.get("dax_query", "")).strip() == item["dax_query"]:
+                # Completar fuente si el ítem legacy no la tenía
+                changed = False
+                if item["cube_address"] and not (existing.get("cube_address") or "").strip():
+                    existing["cube_address"] = item["cube_address"]
+                    changed = True
+                if item["seudonimo"] and not (existing.get("seudonimo") or "").strip():
+                    existing["seudonimo"] = item["seudonimo"]
+                    changed = True
+                if changed:
+                    existing["updated_at"] = now
+                    _save_unlocked(data)
                 return dict(existing)
         items.append(item)
         _save_unlocked(data)
@@ -121,4 +142,28 @@ def update_item_meta(
                 item["updated_at"] = _now_iso()
                 _save_unlocked(data)
                 return dict(item)
+    return None
+
+
+def update_item_source(
+    item_id: str,
+    *,
+    cube_address: str | None = None,
+    seudonimo: str | None = None,
+) -> dict[str, Any] | None:
+    """Persiste la fuente de datos original del indicador (migración / backfill)."""
+    with _LOCK:
+        data = _load_unlocked()
+        for item in data.get("items", []):
+            if item.get("id") != item_id:
+                continue
+            if cube_address is not None:
+                text = (cube_address or "").strip()
+                item["cube_address"] = text or None
+            if seudonimo is not None:
+                text = (seudonimo or "").strip()
+                item["seudonimo"] = text or None
+            item["updated_at"] = _now_iso()
+            _save_unlocked(data)
+            return dict(item)
     return None

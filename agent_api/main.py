@@ -25,6 +25,12 @@ from agent_api.core.dashboard_service import (
     refresh_all_dashboard_entries,
     refresh_dashboard_entry,
 )
+from agent_api.core.data_sources import (
+    get_csv_path,
+    get_data_source,
+    get_dictionary_path_for_seudonimo,
+    list_data_sources,
+)
 from agent_api.core.debug_log import is_debug_enabled
 from agent_api.core.graph import run_agent
 from agent_api.core.security import get_allowed_cube_address, validate_question
@@ -41,6 +47,12 @@ REQUEST_TIMEOUT_SEC = int(os.getenv("AGENT_REQUEST_TIMEOUT_SEC", "120"))
 class QueryRequest(BaseModel):
     cube_address: str | None = Field(default=None, max_length=500)
     question: str = Field(..., min_length=1, max_length=500)
+    seudonimo: str | None = Field(default=None, max_length=120)
+    dictionary_path: str | None = Field(
+        default=None,
+        max_length=500,
+        description="Ruta relativa del diccionario (ej. metadata/diccionarios_cubos/....csv)",
+    )
 
 
 class DebugLogEntry(BaseModel):
@@ -63,6 +75,7 @@ class DashboardAddRequest(BaseModel):
     question: str = Field(default="", max_length=500)
     dax_query: str = Field(..., min_length=8, max_length=4000)
     cube_address: str | None = Field(default=None, max_length=500)
+    seudonimo: str | None = Field(default=None, max_length=120)
 
 
 class DashboardEntryResponse(BaseModel):
@@ -70,6 +83,8 @@ class DashboardEntryResponse(BaseModel):
     title: str
     question: str
     dax_query: str
+    cube_address: str | None = None
+    seudonimo: str | None = None
     chartConfig: dict[str, Any] = Field(default_factory=dict)
     created_at: str | None = None
     updated_at: str | None = None
@@ -129,9 +144,30 @@ app.add_middleware(
 )
 
 
+class DataSourceItem(BaseModel):
+    seudonimo: str
+    ruta_cubo: str | None = None
+    ruta_power_bi: str | None = None
+    ruta_diccionario: str | None = None
+    diccionario_existe: bool = False
+
+
+class DataSourcesResponse(BaseModel):
+    items: list[DataSourceItem]
+    count: int
+    csv_path: str
+
+
 @app.get("/health")
 async def health_check() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/api/v1/data-sources", response_model=DataSourcesResponse)
+async def get_data_sources() -> DataSourcesResponse:
+    """Catálogo de fuentes desde agent_api/data/fuentes_datos.csv (editable)."""
+    items = [DataSourceItem(**row) for row in list_data_sources()]
+    return DataSourcesResponse(items=items, count=len(items), csv_path=get_csv_path())
 
 
 @app.post("/api/v1/query", response_model=QueryResponse)
@@ -141,10 +177,46 @@ async def query_cube(payload: QueryRequest) -> QueryResponse:
 
     try:
         question = validate_question(payload.question)
-        cube_address = get_allowed_cube_address(payload.cube_address)
+
+        dictionary_path = (payload.dictionary_path or "").strip() or None
+        seudonimo = (payload.seudonimo or "").strip() or None
+        if not dictionary_path and seudonimo:
+            dictionary_path = get_dictionary_path_for_seudonimo(seudonimo)
+
+        # Resolver cubo: 1) body 2) CSV por seudónimo 3) DEFAULT del servidor
+        cube_from_client = (payload.cube_address or "").strip()
+        if not cube_from_client and seudonimo:
+            src = get_data_source(seudonimo)
+            if src and src.get("ruta_cubo"):
+                cube_from_client = str(src["ruta_cubo"]).strip()
+            elif src and not src.get("ruta_cubo"):
+                use_mock = os.getenv("SSAS_USE_MOCK", "false").lower() == "true"
+                if not use_mock:
+                    raise ValueError(
+                        f"La fuente '{seudonimo}' no tiene ruta_cubo configurada en "
+                        "fuentes_datos.csv. Agregue la cadena ADOMD o active SSAS_USE_MOCK=true."
+                    )
+
+        if dictionary_path:
+            from agent_api.core.data_sources import dictionaries_exist
+
+            if not dictionaries_exist(dictionary_path):
+                raise ValueError(
+                    f"No se encontró el diccionario '{dictionary_path}'. "
+                    "Verifique ruta_diccionario en fuentes_datos.csv "
+                    "(varias rutas separadas por |)."
+                )
+
+        cube_address = get_allowed_cube_address(cube_from_client or None)
 
         result = await asyncio.wait_for(
-            asyncio.to_thread(run_agent, question, cube_address),
+            asyncio.to_thread(
+                run_agent,
+                question,
+                cube_address,
+                dictionary_path=dictionary_path,
+                seudonimo=seudonimo,
+            ),
             timeout=REQUEST_TIMEOUT_SEC,
         )
 
@@ -206,6 +278,7 @@ async def add_dashboard_item(payload: DashboardAddRequest) -> DashboardEntryResp
             question=payload.question,
             dax_query=payload.dax_query,
             cube_address=payload.cube_address,
+            seudonimo=payload.seudonimo,
         )
         return DashboardEntryResponse(**entry)
     except ValueError as exc:

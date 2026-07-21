@@ -37,7 +37,12 @@ function candidateAgentUrls(primary: string): string[] {
 
 export async function fetchAgentQuery(
   agentApiUrl: string,
-  body: { question: string; cube_address: string },
+  body: {
+    question: string
+    cube_address?: string
+    seudonimo?: string
+    dictionary_path?: string
+  },
   signal: AbortSignal,
   onAttempt?: AttemptLogger,
 ): Promise<{ data: AgentQueryResult; usedUrl: string }> {

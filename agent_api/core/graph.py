@@ -126,10 +126,20 @@ def _build_api_response(
     }
 
 
-def run_agent(question: str, cube_address: str) -> dict[str, Any]:
-    """Punto de entrada del pipeline multi-agente (contrato API sin cambios)."""
+def run_agent(
+    question: str,
+    cube_address: str,
+    *,
+    dictionary_path: str | None = None,
+    seudonimo: str | None = None,
+) -> dict[str, Any]:
+    """Punto de entrada del pipeline multi-agente."""
     trace = AgentDebugTrace()
     trace.log("start", f"Pregunta recibida: {question[:100]}")
+    if seudonimo:
+        trace.log("fuente", f"Seudónimo: {seudonimo}")
+    if dictionary_path:
+        trace.log("fuente", f"Diccionario: {dictionary_path}")
     trace.log("pipeline", "Arquitectura multi-agente (traductor → execute → profiler → viz)")
 
     initial_state: AgentState = {
@@ -147,7 +157,11 @@ def run_agent(question: str, cube_address: str) -> dict[str, Any]:
     }
 
     config = {
-        "configurable": {"cube_address": cube_address},
+        "configurable": {
+            "cube_address": cube_address,
+            "dictionary_path": (dictionary_path or "").strip(),
+            "seudonimo": (seudonimo or "").strip(),
+        },
         "recursion_limit": int(os.getenv("AGENT_RECURSION_LIMIT", "50")),
     }
 

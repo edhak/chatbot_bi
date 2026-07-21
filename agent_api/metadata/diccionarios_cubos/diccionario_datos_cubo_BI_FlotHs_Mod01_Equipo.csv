@@ -1,36 +1,36 @@
-﻿TABLE_QUALIFIER;TABLE_OWNER;TABLE_NAME;COLUMN_NAME;TIPO_VARIABLE;DESCRIPCION;Observación;eliminar observaciones
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Doc_Entrega;nvarchar;Código del documento de Entrega;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Pos_Entrega;nvarchar;Código del documento de Entrega Posterior;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Año;nvarchar;Año de entrega del producto;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Nro Mes;nvarchar;Número de mes de entrega del producto;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Nro Dia;nvarchar;Días de entrega del producto;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Mes De Venta;nvarchar;Mes de entrega del producto en letras;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Fecha De Entrega;varchar;Fecha completa de entrega del producto;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Pais Cliente Operación;nvarchar;Pais de procedencia del cliente que realizo la operación;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Tipo Cliente;varchar;Que tipo de cliente es;Tiene los espacios en Blanco;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Cliente Código SAP;nvarchar;Código del cliente en el sistema SAP;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Cliente Facturación;nvarchar;Nombre del cliente para la FACTURACIÓN;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Cliente Código Final;nvarchar;Código del cliente final;;en que se diferencia con código de cliente de SAP
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Cliente (Nombre Corto);nvarchar;Nombre del cliente que realizo el pedido;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Cliente Unificado;nvarchar;Nombre del cliente Unificado;;y este en que se deferencian de los otros clientes
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Cliente Final;nvarchar;Nombre del cliente Final;;y este en que se diferencia de los clientes?
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Pais_Destino;nvarchar;Pais destino del pedido;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Region_Destino;nvarchar;Región interna del País destino del pedido;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Mercado_Destino;varchar;Mercado destino Identifica si es un mercado nacional o exterior;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Unidad Minera;nvarchar;Nombre de la unidad minera donde se ubicara se enviará el pedido;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Ciudad;nvarchar;Ciudad de la unidad minera;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Estado de Equipo;varchar;Estado en el que se encuentra el equipo;;Este dato se actualiza, o solo es el estado que se le pone al momento de entregar la maquina
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Fecha de Actualización - Estado del Equipo;varchar;Fecha de la última actualización del estado del equipo tiene un formato 20260422;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Código Equipo;int;Código del Equipó (el equipo es el pedido);;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Código Artículo;nvarchar;Código del articulo;;Este es el código del equipo o en que se diferencia o son articulos diferente
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Descripción Artículo;nvarchar;Descripción del articulo y/o maquina;;validar que es este articulo
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Tipo de Equipo;nvarchar;Que tipo de equipo fue que pidiero. Ejemplos:  EMPERNADOR, TALADRO, etc;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Serie;nvarchar;Seríe que tienen el equipo: ejemplos:JMC-856, etc;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Tex_Jerarquia_02;nvarchar;Es el tipo del equipo del pedido. Ejemplo: UTILITARIO, JUMBO,etc;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Tex_Jerarquia_03;nvarchar;Es la función que cumple el equipo del pedido. Ejemplo: DESATADOR, EMPERNADOR, etc;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Tex_Jerarquia_04;nvarchar;Es el modelo del equipo: Ejemplo: SCALEMIN, CABLE R66, MUKI BOLTER, etc;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Horometro Percusión;float;Cantidad de horas de funcionamiento en el Horometro de percusión;;que significa esto son horas minutos veces que guarda esta información
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Horometro Diesel;float;Cantidad de horas de funcionamiento en el Horometro de Diesel;;que significa esto son horas minutos veces que guarda esta información
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Horometro Power Pack;float;Cantidad de horas de funcionamiento en el Horametro del Power Pack;;que significa esto son horas minutos veces que guarda esta información
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Fecha de Actualización - Horómetro;nvarchar;Ultima fecha de actualización del Horometro diesel;;
-RESEMIN_BI;BI_FlotHs;Mod01_Equipo;Nro de Comprobante;nvarchar;Código del comprobante del pago;;
+﻿TABLE_QUALIFIER;TABLE_OWNER;TABLE_NAME;CUBE_TABLE_NAME;COLUMN_NAME;TIPO_VARIABLE;DESCRIPCION;Observación;eliminar observaciones
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Doc_Entrega;nvarchar;Código del documento de Entrega;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Pos_Entrega;nvarchar;Código del documento de Entrega Posterior;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Año;nvarchar;Año de entrega del producto;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Nro Mes;nvarchar;Número de mes de entrega del producto;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Nro Dia;nvarchar;Días de entrega del producto;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Mes De Venta;nvarchar;Mes de entrega del producto en letras;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Fecha De Entrega;varchar;Fecha completa de entrega del producto;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Pais Cliente Operación;nvarchar;Pais de procedencia del cliente que realizo la operación;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Tipo Cliente;varchar;Que tipo de cliente es;Tiene los espacios en Blanco;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Cliente Código SAP;nvarchar;Código del cliente en el sistema SAP;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Cliente Facturación;nvarchar;Nombre del cliente para la FACTURACIÓN;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Cliente Código Final;nvarchar;Código del cliente final;;en que se diferencia con código de cliente de SAP
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Cliente (Nombre Corto);nvarchar;Nombre del cliente que realizo el pedido;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Cliente Unificado;nvarchar;Nombre del cliente Unificado;;y este en que se deferencian de los otros clientes
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Cliente Final;nvarchar;Nombre del cliente Final;;y este en que se diferencia de los clientes?
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Pais_Destino;nvarchar;Pais destino del pedido;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Region_Destino;nvarchar;Región interna del País destino del pedido;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Mercado_Destino;varchar;Mercado destino Identifica si es un mercado nacional o exterior;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Unidad Minera;nvarchar;Nombre de la unidad minera donde se ubicara se enviará el pedido;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Ciudad;nvarchar;Ciudad de la unidad minera;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Estado de Equipo;varchar;Estado en el que se encuentra el equipo;;Este dato se actualiza, o solo es el estado que se le pone al momento de entregar la maquina
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Fecha de Actualización - Estado del Equipo;varchar;Fecha de la última actualización del estado del equipo tiene un formato 20260422;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Código Equipo;int;Código del Equipó (el equipo es el pedido);;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Código Artículo;nvarchar;Código del articulo;;Este es el código del equipo o en que se diferencia o son articulos diferente
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Descripción Artículo;nvarchar;Descripción del articulo y/o maquina;;validar que es este articulo
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Tipo de Equipo;nvarchar;Que tipo de equipo fue que pidiero. Ejemplos:  EMPERNADOR, TALADRO, etc;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Serie;nvarchar;Seríe que tienen el equipo: ejemplos:JMC-856, etc;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Tex_Jerarquia_02;nvarchar;Es el tipo del equipo del pedido. Ejemplo: UTILITARIO, JUMBO,etc;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Tex_Jerarquia_03;nvarchar;Es la función que cumple el equipo del pedido. Ejemplo: DESATADOR, EMPERNADOR, etc;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Tex_Jerarquia_04;nvarchar;Es el modelo del equipo: Ejemplo: SCALEMIN, CABLE R66, MUKI BOLTER, etc;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Horometro Percusión;float;Cantidad de horas de funcionamiento en el Horometro de percusión;;que significa esto son horas minutos veces que guarda esta información
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Horometro Diesel;float;Cantidad de horas de funcionamiento en el Horometro de Diesel;;que significa esto son horas minutos veces que guarda esta información
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Horometro Power Pack;float;Cantidad de horas de funcionamiento en el Horametro del Power Pack;;que significa esto son horas minutos veces que guarda esta información
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Fecha de Actualización - Horómetro;nvarchar;Ultima fecha de actualización del Horometro diesel;;
+RESEMIN_BI;BI_FlotHs;Mod01_Equipo;BI_FlotHs Mod01_Equipo;Nro de Comprobante;nvarchar;Código del comprobante del pago;;

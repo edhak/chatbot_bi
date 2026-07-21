@@ -60,23 +60,34 @@ def normalize_match_key(text: str) -> str:
     return collapsed.upper()
 
 
-def _resolve_table_column(table_name: str, column_name: str) -> tuple[str, str]:
-    schema = load_cube_schema()
+def _resolve_table_column(
+    table_name: str,
+    column_name: str,
+    dictionary_rel: str = "",
+) -> tuple[str, str]:
+    schema = load_cube_schema(dictionary_rel or "")
     table_key = table_name.strip().lower()
     column_key = column_name.strip().lower()
 
-    for table in schema.tables:
+    def _table_matches(table: Any) -> bool:
         if table.name.lower() == table_key:
-            for col in table.columns:
-                if col.name.lower() == column_key:
-                    return table.name, col.name
-            raise ValueError(
-                f"Columna '{column_name}' no documentada en tabla '{table.name}'. "
-                f"Columnas disponibles: {', '.join(c.name for c in table.columns)}"
-            )
+            return True
+        return any(a.lower() == table_key for a in (table.aliases or []))
+
+    for table in schema.tables:
+        if not _table_matches(table):
+            continue
+        for col in table.columns:
+            if col.name.lower() == column_key:
+                # Siempre devolver el nombre DAX del cubo (CUBE_TABLE_NAME)
+                return table.name, col.name
+        raise ValueError(
+            f"Columna '{column_name}' no documentada en tabla '{table.name}'. "
+            f"Columnas disponibles: {', '.join(c.name for c in table.columns)}"
+        )
 
     known_tables = ", ".join(t.name for t in schema.tables)
-    raise ValueError(f"Tabla '{table_name}' no documentada. Tablas: {known_tables}")
+    raise ValueError(f"Tabla '{table_name}' no documentada. Tablas DAX: {known_tables}")
 
 
 def _build_distinct_values_dax(table_name: str, column_name: str) -> str:
@@ -209,7 +220,15 @@ def _fetch_distinct_values(
 ) -> list[str]:
     use_mock = os.getenv("SSAS_USE_MOCK", "false").lower() == "true"
     if use_mock:
-        return list(_MOCK_DIMENSION_VALUES.get((table_name, column_name), []))
+        exact = _MOCK_DIMENSION_VALUES.get((table_name, column_name))
+        if exact:
+            return list(exact)
+        # Fallback genérico: misma columna en cualquier tabla mock
+        col_key = column_name.strip().lower()
+        for (t, c), vals in _MOCK_DIMENSION_VALUES.items():
+            if c.lower() == col_key:
+                return list(vals)
+        return []
 
     dax = _build_distinct_values_dax(table_name, column_name)
     rows = run_dax(cube_address, dax)
@@ -246,17 +265,20 @@ def lookup_dimension_values(
             ),
         }
 
+    cube_address = (config or {}).get("configurable", {}).get("cube_address", "")
+    dictionary_rel = str((config or {}).get("configurable", {}).get("dictionary_path") or "")
     try:
-        resolved_table, resolved_column = _resolve_table_column(table_name, column_name)
+        resolved_table, resolved_column = _resolve_table_column(
+            table_name, column_name, dictionary_rel
+        )
     except ValueError as exc:
         return {
             "error": str(exc),
             "search_hint": hint,
             "matches": [],
-            "note": "Corrige table_name/column_name con nombres del diccionario del cubo.",
+            "note": "Corrige table_name/column_name con nombres del diccionario de la fuente activa.",
         }
 
-    cube_address = (config or {}).get("configurable", {}).get("cube_address", "")
     try:
         distinct_values = _fetch_distinct_values(resolved_table, resolved_column, cube_address)
     except SSASConnectionError as exc:

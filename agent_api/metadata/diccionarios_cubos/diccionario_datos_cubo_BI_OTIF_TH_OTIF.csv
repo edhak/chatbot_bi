@@ -1,0 +1,32 @@
+﻿TABLE_QUALIFIER;TABLE_OWNER;TABLE_NAME;CUBE_TABLE_NAME;COLUMN_NAME;TIPO_VARIABLE;DESCRIPCION;Observación;eliminar observaciones
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Fec_DocPedido;date;Fecha del documento de pedido;Observación;eliminar observaciones
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;SAP;nvarchar;Código SAP del material o artículo;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Texto_Breve;nvarchar;Texto breve descriptivo del material;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;MATKL;nvarchar;Grupo de artículos o categoría de material;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Texto_GpoArt;nvarchar;Texto descriptivo del grupo de artículos;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;LIFNR;nvarchar;Número de cuenta del proveedor / Acreedor;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;MCOD1;nvarchar;Término de búsqueda para proveedor (Matchcode);;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Clase doc. compras;nvarchar;Clase de documento de compras (Ej: Pedido estándar);;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Documento compras;nvarchar;Número del documento de compras;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Pos_Pedido;nvarchar;Posición del pedido de compras;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Cantidad Reparto;decimal;Cantidad asignada al reparto;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Doc. Material;nvarchar;Número del documento de material (Recepción);;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Pos Doc. Material;nvarchar;Posición del documento de material;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Cantidad_Pedido;numeric;Cantidad total del pedido;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Cantidad Ingreso;numeric;Cantidad recibida o ingresada al almacén;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;MONTO_USD;numeric;Monto total en dólares estadounidenses (USD);;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;MONTO_PEN;numeric;Monto total en soles (PEN);;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;UNIT_USD;numeric;Precio unitario en USD;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;UNIT_PEN;numeric;Precio unitario en PEN;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;UNIT_PRECIO;numeric;Precio unitario en la moneda original;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Reparto_MontoUSD;numeric;Monto del reparto en USD;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Reparto_MontoPEN;numeric;Monto del reparto en PEN;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Reparto_Monto;numeric;Monto del reparto en la moneda original;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Fec_CompEntr;date;Fecha de compromiso de entrega;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Fec_ListaFab;date;Fecha de lista de fabricación;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Fec_Contab;date;Fecha de contabilización del documento;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Fecha_Entrada;nvarchar;Fecha real de entrada de la mercancía;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;VALOR_NUEVO;nvarchar;Nuevo valor tras la modificación;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Fecha_Entrada_R;date;Fecha de entrada reprogramada o real;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;Fec_CompEntr_R;date;Fecha de compromiso de entrega reprogramada;;
+RESEMIN_BI;BI_OTIF;TH_Grf_OTIF;TH_OTIF;MOTIVO;nvarchar;Motivo de la operación o modificación;;

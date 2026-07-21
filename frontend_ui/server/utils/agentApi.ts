@@ -5,6 +5,8 @@ export interface DashboardEntry {
   title: string
   question: string
   dax_query: string
+  cube_address?: string | null
+  seudonimo?: string | null
   chartConfig: EChartsOption | Record<string, unknown>
   created_at?: string
   updated_at?: string
@@ -19,9 +21,9 @@ function getAgentApiUrl(): string {
   return config.agentApiUrl as string
 }
 
-function getCubeAddress(): string {
+function getDefaultCubeAddress(): string {
   const config = useRuntimeConfig()
-  return config.defaultCubeAddress as string
+  return (config.defaultCubeAddress as string) || ''
 }
 
 export async function agentGet<T>(path: string, query?: Record<string, string>): Promise<T> {
@@ -40,6 +42,13 @@ export async function agentDelete<T>(path: string): Promise<T> {
   return $fetch<T>(`${base}${path}`, { method: 'DELETE' })
 }
 
-export function defaultCubeBody() {
-  return { cube_address: getCubeAddress() }
+/** Cubo de fallback (env). Preferir el enviado por el cliente desde Fuentes de datos. */
+export function resolveCubeAddress(clientCube?: string | null): string {
+  const fromClient = (clientCube || '').trim()
+  if (fromClient) return fromClient
+  return getDefaultCubeAddress()
+}
+
+export function defaultCubeBody(clientCube?: string | null) {
+  return { cube_address: resolveCubeAddress(clientCube) }
 }

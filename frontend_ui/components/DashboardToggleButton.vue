@@ -6,12 +6,15 @@ const props = defineProps<{
 }>()
 
 const { isIncluded, addToDashboard, removeFromDashboard, loadIncludedMap } = useDashboard()
+const { cubeAddress, selectedSeudonimo, hydrate: hydrateSources } = useDataSources()
 
 const isBusy = ref(false)
 const localError = ref<string | null>(null)
 
 const included = computed(() => isIncluded(props.daxQuery))
 const hasDax = computed(() => Boolean(props.daxQuery?.trim()))
+
+onMounted(() => hydrateSources())
 
 async function toggle() {
   if (!props.daxQuery?.trim() || isBusy.value) return
@@ -25,6 +28,8 @@ async function toggle() {
         title: props.title,
         question: props.question,
         dax_query: props.daxQuery,
+        cube_address: cubeAddress.value,
+        seudonimo: selectedSeudonimo.value,
       })
     }
     await loadIncludedMap()

@@ -33,6 +33,11 @@ MAX_LOOKUP_LOOPS = 2
 MAX_TOOL_CALLS_PER_ROUND = 2
 
 
+def _dictionary_rel(config: RunnableConfig | None) -> str:
+    cfg = (config or {}).get("configurable") or {}
+    return str(cfg.get("dictionary_path") or "").strip()
+
+
 class DaxOutput(BaseModel):
     dax_query: str = Field(
         description=(
@@ -153,10 +158,8 @@ def _summarize_lookup_results(results: list[dict[str, Any]]) -> str:
             "",
             "Instrucciones:",
             "- Si hay coincidencias, usa el valor exacto en FILTER/TREATAS.",
-            "- Si no hay coincidencias para un país, genera DAX igual (TOPN/SUMMARIZECOLUMNS) "
-            "con la mejor columna geográfica disponible.",
-            "- Para 'regiones en [país]': filtra por Pais_Destino (o Pais Cliente Operación) "
-            "y agrupa por Region_Destino con COUNTROWS o DISTINCTCOUNT.",
+            "- Si no hay coincidencias, genera DAX con columnas del diccionario activo "
+            "(agrupa/filtra con la mejor columna disponible).",
             "- NO vuelvas a llamar lookup; escribe el DAX ahora.",
         ]
     )
@@ -200,9 +203,10 @@ def _generate_dax_query(
     """Genera DAX con mensajes limpios (sin ToolMessage) para evitar errores 400 del LLM."""
     user_payload = _build_user_payload(state)
     lookup_summary = _summarize_lookup_results(lookup_results)
+    dict_rel = _dictionary_rel(config)
 
     final_messages = [
-        SystemMessage(content=dax_translator_prompt()),
+        SystemMessage(content=dax_translator_prompt(dict_rel)),
         HumanMessage(content=f"{user_payload}\n\n{lookup_summary}"),
         HumanMessage(
             content=(
@@ -227,9 +231,10 @@ def dax_translator_agent(state: AgentState, config: RunnableConfig) -> dict[str,
     trace.log("dax_translator", "Generando consulta DAX...")
     t0 = time.perf_counter()
 
+    dict_rel = _dictionary_rel(config)
     llm_tools = get_llm(max_tokens=700).bind_tools(LOOKUP_TOOLS)
     messages: list = [
-        SystemMessage(content=dax_translator_lookup_prompt()),
+        SystemMessage(content=dax_translator_lookup_prompt(dict_rel)),
         HumanMessage(content=_build_user_payload(state)),
     ]
 

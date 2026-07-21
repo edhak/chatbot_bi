@@ -29,30 +29,30 @@ _CUBE_ADDRESS_PATTERN = re.compile(
 
 def get_allowed_cube_address(requested: str | None) -> str:
     """
-    Usa la cadena del servidor por defecto.
-    Solo acepta override del cliente si ALLOW_CLIENT_CUBE_ADDRESS=true.
+    Resuelve la cadena ADOMD a usar.
+    Si el cliente envía cube_address válido, se usa (fuentes editables en UI).
+    ALLOW_CLIENT_CUBE_ADDRESS=false fuerza siempre el DEFAULT del servidor.
     """
     default = os.getenv("DEFAULT_CUBE_ADDRESS", "").strip()
     use_mock = os.getenv("SSAS_USE_MOCK", "false").lower() == "true"
-    allow_override = os.getenv("ALLOW_CLIENT_CUBE_ADDRESS", "false").lower() == "true"
+    allow_override = os.getenv("ALLOW_CLIENT_CUBE_ADDRESS", "true").lower() == "true"
 
-    if not allow_override or not requested or not requested.strip():
-        return _resolve_cube_address(default, use_mock=use_mock)
+    if allow_override and requested and requested.strip():
+        candidate = requested.strip()
+        if len(candidate) > 500:
+            raise ValueError("La cadena de conexión al cubo es demasiado larga.")
+        if not _CUBE_ADDRESS_PATTERN.match(candidate):
+            raise ValueError("Formato de conexión al cubo no permitido.")
+        if "password=" in candidate.lower() or "pwd=" in candidate.lower():
+            raise ValueError("No se permiten credenciales en la cadena de conexión.")
+        if "YOUR_SSAS_HOST" in candidate:
+            raise ValueError(
+                "cube_address contiene el placeholder YOUR_SSAS_HOST. "
+                "Configure una dirección de cubo real."
+            )
+        return candidate
 
-    candidate = requested.strip()
-    if len(candidate) > 500:
-        raise ValueError("La cadena de conexión al cubo es demasiado larga.")
-    if not _CUBE_ADDRESS_PATTERN.match(candidate):
-        raise ValueError("Formato de conexión al cubo no permitido.")
-    if "password=" in candidate.lower() or "pwd=" in candidate.lower():
-        raise ValueError("No se permiten credenciales en la cadena de conexión.")
-    if "YOUR_SSAS_HOST" in candidate:
-        raise ValueError(
-            "cube_address contiene el placeholder YOUR_SSAS_HOST. "
-            "Configure DEFAULT_CUBE_ADDRESS en agent_api/.env."
-        )
-
-    return candidate
+    return _resolve_cube_address(default, use_mock=use_mock)
 
 
 def _resolve_cube_address(cube_address: str, *, use_mock: bool) -> str:

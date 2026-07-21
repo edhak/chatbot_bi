@@ -34,16 +34,33 @@ interface AgentResponse {
 
 const CHAT_TIMEOUT_MS = 125_000
 
+const { cubeAddress, selectedSeudonimo, dictionaryPath, hasCube, hydrate: hydrateSources } = useDataSources()
+onMounted(() => hydrateSources())
+
 const messages = ref<ChatMessage[]>([])
 const userInput = ref('')
 
-const suggestedQuestions = [
-  '¿Cuántos equipos hay registrados en total?',
-  '¿Cuántos equipos hay por país destino?',
-  '¿Cuáles son los 5 tipos de equipo más frecuentes?',
-  '¿Cuántos equipos hay por mercado destino (Nacional vs Exterior)?',
-  '¿Qué regiones tienen más equipos entregados?',
-]
+const suggestedQuestions = computed(() => {
+  const name = selectedSeudonimo.value || 'esta fuente'
+  return [
+    `¿Qué indicadores clave puedo consultar en ${name}?`,
+    'Muéstrame un resumen agrupado por la categoría principal',
+    '¿Cuáles son los 5 valores más frecuentes?',
+    'Compara los totales por periodo o dimensión temporal',
+  ]
+})
+
+const chatHint = computed(() =>
+  selectedSeudonimo.value
+    ? `Consulte indicadores de «${selectedSeudonimo.value}» en lenguaje natural.`
+    : 'Seleccione una fuente en el panel izquierdo y formule su consulta.',
+)
+
+const inputPlaceholder = computed(() =>
+  selectedSeudonimo.value
+    ? `Escriba su consulta sobre ${selectedSeudonimo.value}...`
+    : 'Seleccione una fuente y escriba su consulta...',
+)
 
 const isLoading = ref(false)
 const loadingElapsed = ref(0)
@@ -126,6 +143,23 @@ async function sendMessage() {
   const text = userInput.value.trim()
   if (!text || isLoading.value) return
   if (text.length > MAX_QUESTION_LENGTH) return
+  if (!hasCube.value && !dictionaryPath.value) {
+    messages.value.push({
+      role: 'agent',
+      text: 'Seleccione una fuente con cubo y diccionario configurados en el panel izquierdo.',
+    })
+    return
+  }
+  if (!hasCube.value) {
+    messages.value.push({
+      role: 'agent',
+      text: (
+        `La fuente «${selectedSeudonimo.value || 'seleccionada'}» no tiene ruta_cubo. `
+        + 'Configure la cadena ADOMD en fuentes_datos.csv o active SSAS_USE_MOCK=true.'
+      ),
+    })
+    return
+  }
 
   messages.value.push({ role: 'user', text })
   userInput.value = ''
@@ -139,7 +173,12 @@ async function sendMessage() {
   try {
     const response = await $fetch<AgentResponse>('/api/chat', {
       method: 'POST',
-      body: { message: text },
+      body: {
+        message: text,
+        cube_address: cubeAddress.value || undefined,
+        seudonimo: selectedSeudonimo.value || undefined,
+        dictionary_path: dictionaryPath.value || undefined,
+      },
       signal: activeAbort.signal,
     })
 
@@ -256,7 +295,7 @@ const hasMessages = computed(() => messages.value.length > 0)
               Asistente de Análisis BI
             </h2>
             <p class="mb-6 text-sm leading-relaxed text-[#6B6B6A]">
-              Consulte indicadores de la flota de equipos en lenguaje natural.
+              {{ chatHint }}
             </p>
             <div class="flex flex-wrap justify-center gap-2">
               <button
@@ -366,7 +405,7 @@ const hasMessages = computed(() => messages.value.length > 0)
           v-model="userInput"
           rows="1"
           maxlength="500"
-          placeholder="Escriba su consulta sobre la flota de equipos..."
+          :placeholder="inputPlaceholder"
           class="flex-1 resize-none rounded-xl border border-brand-light bg-[#F4F6F8] px-4 py-3 text-sm text-brand-dark placeholder-[#9CA3AF] outline-none transition focus:border-brand-blue focus:bg-white focus:ring-2 focus:ring-brand-blue/20"
           :disabled="isLoading"
           @keydown="handleKeydown"

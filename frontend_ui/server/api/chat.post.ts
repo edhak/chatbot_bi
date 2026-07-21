@@ -12,7 +12,12 @@ export default defineEventHandler(async (event) => {
   const t0 = Date.now()
   pushLog(bffLogs, 'bff', 'Recibida petición del navegador')
 
-  const body = await readBody<{ message?: string; cube_address?: string }>(event)
+  const body = await readBody<{
+    message?: string
+    cube_address?: string
+    seudonimo?: string
+    dictionary_path?: string
+  }>(event)
 
   if (!body?.message?.trim()) {
     throw createError({ statusCode: 400, statusMessage: 'El campo "message" es obligatorio.' })
@@ -28,15 +33,28 @@ export default defineEventHandler(async (event) => {
 
   const config = useRuntimeConfig()
   const chatTimeoutMs = Number(config.chatTimeoutMs || process.env.CHAT_TIMEOUT_MS || 125_000)
-  const allowClientCube =
-    config.allowClientCubeAddress === 'true' || config.allowClientCubeAddress === true
   const agentApiUrl = config.agentApiUrl as string
-  const cubeAddress =
-    allowClientCube && body.cube_address?.trim()
-      ? body.cube_address.trim()
-      : (config.defaultCubeAddress as string)
+  // Solo el cubo de la fuente seleccionada (NO forzar DEFAULT_CUBE_ADDRESS aquí)
+  const cubeAddress = body.cube_address?.trim() || ''
+  const seudonimo = body.seudonimo?.trim() || undefined
+  const dictionaryPath = body.dictionary_path?.trim() || undefined
 
+  if (!cubeAddress && process.env.SSAS_USE_MOCK !== 'true') {
+    pushLog(
+      bffLogs,
+      'bff',
+      'Sin ruta_cubo en la fuente; el backend resolverá por seudónimo o DEFAULT',
+      'warn',
+      Date.now() - t0,
+    )
+  }
   pushLog(bffLogs, 'bff', `URL primaria: ${agentApiUrl}`, 'info', Date.now() - t0)
+  if (seudonimo) {
+    pushLog(bffLogs, 'bff', `Fuente: ${seudonimo}`, 'info', Date.now() - t0)
+  }
+  if (dictionaryPath) {
+    pushLog(bffLogs, 'bff', `Diccionario: ${dictionaryPath}`, 'info', Date.now() - t0)
+  }
   if (process.env.DOCKER_GATEWAY) {
     pushLog(bffLogs, 'bff', `Gateway Docker: ${process.env.DOCKER_GATEWAY}`, 'info', Date.now() - t0)
   }
@@ -50,7 +68,12 @@ export default defineEventHandler(async (event) => {
   try {
     const { data: response, usedUrl } = await fetchAgentQuery(
       agentApiUrl,
-      { question: message, cube_address: cubeAddress },
+      {
+        question: message,
+        cube_address: cubeAddress,
+        seudonimo,
+        dictionary_path: dictionaryPath,
+      },
       controller.signal,
       (message, level = 'info') => pushLog(bffLogs, 'bff', message, level, Date.now() - t0),
     )
